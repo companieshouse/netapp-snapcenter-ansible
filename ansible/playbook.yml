@@ -1,0 +1,16 @@
+---
+- name: Provision Ansible controller with SSH key for remote
+  hosts: localhost
+  roles:
+    - role: companieshouse.general.ssh_key
+      vars:
+        ssh_key_name: ansible_remote
+        ssh_key_vault_path: "/applications/{{ aws_profile }}/netapp/TBC"
+
+- name: NetApp SnapCenter install and setup
+  hosts: aws_ec2
+  remote_user: ansible-user
+  become: true
+  gather_facts: true
+  roles:
+    - role: instance_facts
