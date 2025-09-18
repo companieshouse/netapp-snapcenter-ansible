@@ -1,0 +1,5 @@
+# Ansible runtime and cache
+.ansible/
+
+# macOS
+.DS_Store

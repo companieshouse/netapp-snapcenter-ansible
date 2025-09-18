@@ -1,0 +1,10 @@
+---
+collections:
+  - name: companieshouse.security
+    version: 1.0.7
+  - name: companieshouse.general
+    version: "1.2.3"
+  - name: amazon.aws
+    version: "8.1.0"
+  - name: community.general
+    version: "9.3.0"
