@@ -1,0 +1,52 @@
+---
+- name: Retrieve temporary root password from Hashicorp Vault
+  ansible.builtin.set_fact:
+    root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/root_password_temp') }}"
+
+- name: Get API authentication token as root
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      UserOperationContext:
+        User:
+          Name: root
+          Passphrase: "{{ root_password_temp }}"
+    validate_certs: no
+    return_content: yes
+  register: auth_response
+
+- name: Extract authentication token
+  ansible.builtin.set_fact:
+    snapcenter_token: "{{ auth_response.json.User.Token }}"
+
+- name: Add admin user to SnapCenter with Admin role
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames=admin&RoleNames=SnapCenterAdmin"
+    method: POST
+    headers:
+      Token: "{{ snapcenter_token }}"
+      Content-Type: application/json
+    validate_certs: no
+    status_code: [200, 201]
+  register: add_admin_result
+
+- name: Retrieve SnapCenter users from Hashicorp Vault
+  ansible.builtin.set_fact:
+    snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/snapcenter_users') | from_json }}"
+
+- name: Add additional users to SnapCenter via API
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames={{ item.username }}&RoleNames={{ item.snapcenter_role }}"
+    method: POST
+    headers:
+      Token: "{{ snapcenter_token }}"
+      Content-Type: application/json
+    validate_certs: no
+    status_code: [200, 201]
+  loop: "{{ snapcenter_users.users | default([]) }}"
+  when: snapcenter_users is defined
+  register: add_users_results

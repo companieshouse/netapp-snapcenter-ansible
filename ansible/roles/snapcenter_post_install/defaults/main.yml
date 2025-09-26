@@ -1,0 +1,6 @@
+---
+snapcenter_runtime_dir: /var/opt/snapcenter
+snapcenter_nginx_conf: /etc/nginx/conf.d/snapcenter.conf
+snapcenter_certs_dir: "{{ snapcenter_runtime_dir }}/certs"
+snapcenter_cert_file: "{{ snapcenter_certs_dir }}/SCnginx.crt"
+snapcenter_key_file: "{{ snapcenter_certs_dir }}/SCnginx.key"

@@ -1,0 +1,33 @@
+---
+- name: Get S3 resources bucket from vault
+  amazon.aws.aws_secret:
+    name: "{{ vault_base_path }}/s3_resources_bucket"
+    region: "{{ aws_region }}"
+  register: s3_resources_bucket_secret
+
+- name: Set S3 bucket and path
+  set_fact:
+    s3_bucket: "{{ s3_resources_bucket_secret.secret.split('/')[0] }}"
+    s3_prefix: "{{ s3_resources_bucket_secret.secret.split('/', 1)[1] }}"
+
+- name: Create temporary download directory
+  ansible.builtin.file:
+    path: "{{ snapcenter_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download SnapCenter installation files from S3
+  amazon.aws.aws_s3:
+    bucket: "{{ s3_bucket }}"
+    object: "{{ s3_prefix }}/{{ snapcenter_version }}/{{ item }}"
+    dest: "{{ snapcenter_tmp_dir }}/{{ item }}"
+    mode: get
+    region: "{{ aws_region }}"
+  loop: "{{ snapcenter_files }}"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: Make installation binary executable
+  ansible.builtin.file:
+    path: "{{ snapcenter_tmp_dir }}/{{ snapcenter_binary }}"
+    mode: "0755"

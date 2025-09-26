@@ -1,0 +1,7 @@
+---
+snapcenter_version: "6.1P2"
+snapcenter_api_version: "6.1"
+snapcenter_binary: "snapcenter-linux-server.el9.bin"
+snapcenter_install_dir: "/opt/NetApp/snapcenter"
+snapcenter_tmp_dir: "/tmp/snapcenter"
+snapcenter_webapp_port: 8146

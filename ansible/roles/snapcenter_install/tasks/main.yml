@@ -1,0 +1,17 @@
+---
+- name: Install SnapCenter Linux server
+  ansible.builtin.command: >
+    {{ snapcenter_tmp_dir }}/{{ snapcenter_binary }} -i silent
+    {{ snapcenter_install_args | join(' ') }}
+  args:
+    creates: "{{ snapcenter_install_dir }}"
+  become: true
+  register: snapcenter_install_result
+
+- name: Wait for SnapCenter services to start
+  ansible.builtin.wait_for:
+    port: "{{ snapcenter_webapp_port }}"
+    host: localhost
+    delay: 10
+    timeout: 300
+  when: snapcenter_install_result.changed
