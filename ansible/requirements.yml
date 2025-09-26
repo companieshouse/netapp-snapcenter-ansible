@@ -8,3 +8,5 @@ collections:
     version: "8.1.0"
   - name: community.general
     version: "9.3.0"
+  - name: ansible.posix
+    version: "1.5.4"

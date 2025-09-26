@@ -1,14 +1,12 @@
 ---
 - name: Get S3 resources bucket from vault
-  amazon.aws.aws_secret:
-    name: "{{ vault_base_path }}/s3_resources_bucket"
-    region: "{{ aws_region }}"
-  register: s3_resources_bucket_secret
+  ansible.builtin.set_fact:
+    snapcenter_download_s3_resources_bucket: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/s3_resources_bucket') }}"
 
 - name: Set S3 bucket and path
-  set_fact:
-    s3_bucket: "{{ s3_resources_bucket_secret.secret.split('/')[0] }}"
-    s3_prefix: "{{ s3_resources_bucket_secret.secret.split('/', 1)[1] }}"
+  ansible.builtin.set_fact:
+    snapcenter_download_s3_bucket_name: "{{ snapcenter_download_s3_resources_bucket.split('/')[0] }}"
+    snapcenter_download_s3_bucket_path: "{{ snapcenter_download_s3_resources_bucket.split('/', 1)[1] }}"
 
 - name: Create temporary download directory
   ansible.builtin.file:
@@ -17,13 +15,13 @@
     mode: "0755"
 
 - name: Download SnapCenter installation files from S3
-  amazon.aws.aws_s3:
-    bucket: "{{ s3_bucket }}"
-    object: "{{ s3_prefix }}/{{ snapcenter_version }}/{{ item }}"
+  amazon.aws.s3_object:
+    bucket: "{{ snapcenter_download_s3_bucket_name }}"
+    object: "{{ snapcenter_download_s3_bucket_path }}/{{ snapcenter_version }}/{{ item }}"
     dest: "{{ snapcenter_tmp_dir }}/{{ item }}"
     mode: get
     region: "{{ aws_region }}"
-  loop: "{{ snapcenter_files }}"
+  loop: "{{ snapcenter_download_files }}"
   vars:
     ansible_python_interpreter: /usr/bin/python3
 

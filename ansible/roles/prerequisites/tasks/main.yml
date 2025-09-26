@@ -1,44 +1,44 @@
 ---
 - name: Add Microsoft repository
-  ansible.builtin.yum:
-    name: "{{ snapcenter_microsoft_repo_url }}"
+  ansible.builtin.dnf:
+    name: "{{ microsoft_repo_url }}"
     state: present
-    disable_gpg_check: yes
+    disable_gpg_check: true
 
 - name: Install required packages
   ansible.builtin.dnf:
-    name: "{{ snapcenter_required_packages }}"
+    name: "{{ required_packages }}"
     state: present
 
 - name: Retrieve temporary root password from Hashicorp Vault
   ansible.builtin.set_fact:
-    root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/root_password_temp') }}"
+    prerequisites_root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/root_password_temp') }}"
 
 - name: Set temporary root password from Hashicorp Vault
   ansible.builtin.user:
     name: root
-    password: "{{ root_password_temp | password_hash('sha512') }}"
+    password: "{{ prerequisites_root_password_temp | password_hash('sha512') }}"
 
 - name: Retrieve admin password from Hashicorp Vault
   ansible.builtin.set_fact:
-    admin_password: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/admin_password') }}"
+    prerequisites_admin_password: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/admin_password') }}"
 
 - name: Create admin user account
   ansible.builtin.user:
     name: admin
-    password: "{{ admin_password | password_hash('sha512') }}"
+    password: "{{ prerequisites_admin_password | password_hash('sha512') }}"
     state: present
-    create_home: no
+    create_home: false
 
 - name: Retrieve SnapCenter users from Hashicorp Vault
   ansible.builtin.set_fact:
-    snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/snapcenter_users') | from_json }}"
+    prerequisites_snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/snapcenter_users') | from_json }}"
 
 - name: Create additional Linux users from vault
   ansible.builtin.user:
     name: "{{ item.username }}"
     password: "{{ item.password | password_hash('sha512') }}"
     state: present
-    create_home: no
-  loop: "{{ snapcenter_users.users | default([]) }}"
-  when: snapcenter_users is defined
+    create_home: false
+  loop: "{{ prerequisites_snapcenter_users.users | default([]) }}"
+  when: prerequisites_snapcenter_users is defined

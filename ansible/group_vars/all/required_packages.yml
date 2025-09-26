@@ -1,5 +1,5 @@
 ---
-snapcenter_required_packages:
+required_packages:
   - aspnetcore-runtime-8.0
   - awscli
   - jq

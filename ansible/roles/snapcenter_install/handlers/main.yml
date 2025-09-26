@@ -1,0 +1,7 @@
+---
+- name: Wait for snapcenter services
+  ansible.builtin.wait_for:
+    port: "{{ snapcenter_webapp_port }}"
+    host: localhost
+    delay: 10
+    timeout: 300
