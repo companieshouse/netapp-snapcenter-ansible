@@ -16,6 +16,7 @@
     - role: instance_facts
     - role: vault_facts
     - role: hostname
+    - role: mount_snapcenter_data
     - role: prerequisites
     - role: mysql_setup
     - role: selinux_config

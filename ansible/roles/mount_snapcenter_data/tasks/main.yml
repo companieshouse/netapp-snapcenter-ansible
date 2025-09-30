@@ -1,0 +1,39 @@
+---
+- name: Wait for EBS volume device to be available
+  ansible.builtin.wait_for:
+    path: "{{ mount_snapcenter_data_device_name }}"
+    state: present
+    timeout: 300
+
+- name: Check if device is already formatted
+  ansible.builtin.command: blkid -o value -s TYPE {{ mount_snapcenter_data_device_name }}
+  register: mount_snapcenter_data_device_fstype
+  failed_when: false
+  changed_when: false
+
+- name: Create filesystem on EBS volume
+  community.general.filesystem:
+    fstype: "{{ mount_snapcenter_data_filesystem_type }}"
+    dev: "{{ mount_snapcenter_data_device_name }}"
+  when: mount_snapcenter_data_device_fstype.stdout == ""
+
+- name: Ensure mount point directory exists
+  ansible.builtin.file:
+    path: "{{ mount_snapcenter_data_mount_point }}"
+    state: directory
+    mode: '0755'
+
+- name: Mount EBS volume
+  ansible.posix.mount:
+    path: "{{ mount_snapcenter_data_mount_point }}"
+    src: "{{ mount_snapcenter_data_device_name }}"
+    fstype: "{{ mount_snapcenter_data_filesystem_type }}"
+    state: mounted
+    opts: defaults,nofail
+
+- name: Set correct ownership on mount point
+  ansible.builtin.file:
+    path: "{{ mount_snapcenter_data_mount_point }}"
+    owner: root
+    group: root
+    mode: '0755'
