@@ -10,29 +10,17 @@
     name: "{{ required_packages }}"
     state: present
 
-- name: Retrieve temporary root password from Hashicorp Vault
-  ansible.builtin.set_fact:
-    prerequisites_root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/root_password_temp') }}"
-
 - name: Set temporary root password from Hashicorp Vault
   ansible.builtin.user:
     name: root
-    password: "{{ prerequisites_root_password_temp | password_hash('sha512') }}"
-
-- name: Retrieve admin password from Hashicorp Vault
-  ansible.builtin.set_fact:
-    prerequisites_admin_password: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/admin_password') }}"
+    password: "{{ vault_facts_root_password_temp | password_hash('sha512') }}"
 
 - name: Create admin user account
   ansible.builtin.user:
     name: admin
-    password: "{{ prerequisites_admin_password | password_hash('sha512') }}"
+    password: "{{ vault_facts_admin_password | password_hash('sha512') }}"
     state: present
     create_home: false
-
-- name: Retrieve SnapCenter users from Hashicorp Vault
-  ansible.builtin.set_fact:
-    prerequisites_snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/snapcenter_users') | from_json }}"
 
 - name: Create additional Linux users from vault
   ansible.builtin.user:
@@ -40,5 +28,5 @@
     password: "{{ item.password | password_hash('sha512') }}"
     state: present
     create_home: false
-  loop: "{{ prerequisites_snapcenter_users.users | default([]) }}"
-  when: prerequisites_snapcenter_users is defined
+  loop: "{{ vault_facts_snapcenter_users.users | default([]) }}"
+  when: vault_facts_snapcenter_users is defined

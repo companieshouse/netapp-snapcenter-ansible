@@ -27,7 +27,7 @@
 - name: Restore SELinux context for certificates
   ansible.builtin.command: "restorecon -Rv {{ snapcenter_post_install_certs_dir }}"
   register: snapcenter_post_install_restorecon_certs
-  changed_when: restorecon_certs.stdout != ""
+  changed_when: snapcenter_post_install_restorecon_certs.stdout != ""
 
 - name: Allow nginx to connect to backend services
   ansible.posix.seboolean:

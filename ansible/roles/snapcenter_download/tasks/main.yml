@@ -1,12 +1,8 @@
 ---
-- name: Get S3 resources bucket from vault
-  ansible.builtin.set_fact:
-    snapcenter_download_s3_resources_bucket: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/s3_resources_bucket') }}"
-
 - name: Set S3 bucket and path
   ansible.builtin.set_fact:
-    snapcenter_download_s3_bucket_name: "{{ snapcenter_download_s3_resources_bucket.split('/')[0] }}"
-    snapcenter_download_s3_bucket_path: "{{ snapcenter_download_s3_resources_bucket.split('/', 1)[1] }}"
+    snapcenter_download_s3_bucket_name: "{{ vault_facts_s3_resources_bucket.split('/')[0] }}"
+    snapcenter_download_s3_bucket_path: "{{ vault_facts_s3_resources_bucket.split('/', 1)[1] }}"
 
 - name: Create temporary download directory
   ansible.builtin.file:

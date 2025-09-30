@@ -8,22 +8,22 @@
 
 - name: Set SELinux context for MySQL runtime directory
   community.general.sefcontext:
-    target: "{{ snapcenter_mysql_runtime_dir }}(/.*)?"
+    target: "{{ mysql_runtime_dir }}(/.*)?"
     setype: mysqld_var_run_t
     state: present
 
 - name: Restore SELinux context for MySQL runtime directory
-  ansible.builtin.command: "restorecon -Rv {{ snapcenter_mysql_runtime_dir }}"
+  ansible.builtin.command: "restorecon -Rv {{ mysql_runtime_dir }}"
   register: selinux_config_restorecon_runtime
   changed_when: selinux_config_restorecon_runtime.stdout != ""
 
 - name: Set SELinux context for MySQL data directory
   community.general.sefcontext:
-    target: "{{ snapcenter_mysql_data_dir }}(/.*)?"
+    target: "{{ mysql_data_dir }}(/.*)?"
     setype: mysqld_db_t
     state: present
 
 - name: Restore SELinux context for MySQL data directory
-  ansible.builtin.command: "restorecon -Rv {{ snapcenter_mysql_data_dir }}"
+  ansible.builtin.command: "restorecon -Rv {{ mysql_data_dir }}"
   register: selinux_config_restorecon_data
   changed_when: selinux_config_restorecon_data.stdout != ""

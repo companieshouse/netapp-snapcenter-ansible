@@ -1,7 +1,7 @@
 ---
 - name: Create MySQL runtime directory
   ansible.builtin.file:
-    path: "{{ snapcenter_mysql_runtime_dir }}"
+    path: "{{ mysql_runtime_dir }}"
     state: directory
     mode: "0755"
     owner: root
@@ -9,7 +9,7 @@
 
 - name: Create MySQL data directory
   ansible.builtin.file:
-    path: "{{ snapcenter_mysql_data_dir }}"
+    path: "{{ mysql_data_dir }}"
     state: directory
     mode: "0755"
     owner: root
