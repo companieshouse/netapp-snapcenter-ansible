@@ -1,0 +1,6 @@
+---
+snapcenter_post_install_runtime_dir: /var/opt/snapcenter
+snapcenter_post_install_nginx_conf: /etc/nginx/conf.d/snapcenter.conf
+snapcenter_post_install_certs_dir: "{{ snapcenter_post_install_runtime_dir }}/certs"
+snapcenter_post_install_cert_file: "{{ snapcenter_post_install_certs_dir }}/SCnginx.crt"
+snapcenter_post_install_key_file: "{{ snapcenter_post_install_certs_dir }}/SCnginx.key"

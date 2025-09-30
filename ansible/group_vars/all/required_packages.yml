@@ -1,0 +1,10 @@
+---
+required_packages:
+  - aspnetcore-runtime-8.0
+  - awscli
+  - jq
+  - libicu
+  - powershell
+  - net-tools
+  - nginx
+  - pam-devel

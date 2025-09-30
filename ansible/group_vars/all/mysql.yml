@@ -1,0 +1,3 @@
+---
+mysql_runtime_dir: /var/opt/mysqld
+mysql_data_dir: "{{ snapcenter_install_dir }}/SnapManagerWeb/Repository/MySQL"

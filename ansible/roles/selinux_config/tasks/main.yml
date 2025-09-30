@@ -1,0 +1,29 @@
+---
+- name: Configure SELinux port for SnapCenter
+  community.general.seport:
+    ports: "{{ snapcenter_webapp_port }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+
+- name: Set SELinux context for MySQL runtime directory
+  community.general.sefcontext:
+    target: "{{ mysql_runtime_dir }}(/.*)?"
+    setype: mysqld_var_run_t
+    state: present
+
+- name: Restore SELinux context for MySQL runtime directory
+  ansible.builtin.command: "restorecon -Rv {{ mysql_runtime_dir }}"
+  register: selinux_config_restorecon_runtime
+  changed_when: selinux_config_restorecon_runtime.stdout != ""
+
+- name: Set SELinux context for MySQL data directory
+  community.general.sefcontext:
+    target: "{{ mysql_data_dir }}(/.*)?"
+    setype: mysqld_db_t
+    state: present
+
+- name: Restore SELinux context for MySQL data directory
+  ansible.builtin.command: "restorecon -Rv {{ mysql_data_dir }}"
+  register: selinux_config_restorecon_data
+  changed_when: selinux_config_restorecon_data.stdout != ""

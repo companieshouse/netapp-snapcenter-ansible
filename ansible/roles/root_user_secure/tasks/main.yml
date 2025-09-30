@@ -1,0 +1,16 @@
+---
+- name: Generate random secure password for root
+  ansible.builtin.set_fact:
+    root_user_secure_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits,punctuation length=32') }}"
+
+- name: Set random secure password for root user
+  ansible.builtin.user:
+    name: root
+    password: "{{ root_user_secure_password | password_hash('sha512') }}"
+  no_log: true
+
+- name: Verify root password was changed
+  ansible.builtin.command: grep "^root:" /etc/shadow
+  register: root_user_secure_shadow
+  changed_when: false
+  no_log: true

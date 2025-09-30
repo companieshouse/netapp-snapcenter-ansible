@@ -1,0 +1,5 @@
+---
+snapcenter_download_files:
+  - "{{ snapcenter_binary }}"
+  - "{{ snapcenter_binary }}.sig"
+  - "snapcenter_public_key.pub"

@@ -1,0 +1,35 @@
+---
+- name: Get Hostname tag
+  ansible.builtin.command: >
+    aws ec2 describe-instances
+    --instance-ids {{ instance_facts_instance_id }}
+    --query "Reservations[*].Instances[*].Tags[?Key=='Hostname'].Value"
+    --output text
+  register: hostname_tag_result
+  changed_when: false
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+    AWS_DEFAULT_REGION: "{{ instance_facts_instance_region }}"
+
+- name: Get Zone tag
+  ansible.builtin.command: >
+    aws ec2 describe-instances
+    --instance-ids {{ instance_facts_instance_id }}
+    --query "Reservations[*].Instances[*].Tags[?Key=='Zone'].Value"
+    --output text
+  register: hostname_zone_result
+  changed_when: false
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+    AWS_DEFAULT_REGION: "{{ instance_facts_instance_region }}"
+
+- name: Set Hostname and FQDN facts
+  ansible.builtin.set_fact:
+    hostname_short: "{{ hostname_tag_result.stdout | trim }}"
+    hostname_zone: "{{ hostname_zone_result.stdout | trim }}"
+    hostname_fqdn: "{{ hostname_tag_result.stdout | trim }}.{{ hostname_zone_result.stdout | trim }}"
+
+- name: Set Hostname and FQDN using hostnamectl
+  ansible.builtin.command: hostnamectl set-hostname {{ hostname_fqdn }}
+  when: hostname_short | trim != "" and hostname_zone | trim != ""
+  changed_when: true

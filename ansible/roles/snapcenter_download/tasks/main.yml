@@ -1,0 +1,27 @@
+---
+- name: Set S3 bucket and path
+  ansible.builtin.set_fact:
+    snapcenter_download_s3_bucket_name: "{{ vault_facts_s3_resources_bucket.split('/')[0] }}"
+    snapcenter_download_s3_bucket_path: "{{ vault_facts_s3_resources_bucket.split('/', 1)[1] }}"
+
+- name: Create temporary download directory
+  ansible.builtin.file:
+    path: "{{ snapcenter_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download SnapCenter installation files from S3
+  amazon.aws.s3_object:
+    bucket: "{{ snapcenter_download_s3_bucket_name }}"
+    object: "{{ snapcenter_download_s3_bucket_path }}/{{ snapcenter_version }}/{{ item }}"
+    dest: "{{ snapcenter_tmp_dir }}/{{ item }}"
+    mode: get
+    region: "{{ aws_region }}"
+  loop: "{{ snapcenter_download_files }}"
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+- name: Make installation binary executable
+  ansible.builtin.file:
+    path: "{{ snapcenter_tmp_dir }}/{{ snapcenter_binary }}"
+    mode: "0755"

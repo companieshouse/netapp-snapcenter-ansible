@@ -1,0 +1,45 @@
+---
+- name: Get API authentication token as root
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      UserOperationContext:
+        User:
+          Name: root
+          Passphrase: "{{ vault_facts_root_password_temp }}"
+    validate_certs: false
+    return_content: true
+  register: snapcenter_add_users_auth_response
+
+- name: Extract authentication token
+  ansible.builtin.set_fact:
+    snapcenter_add_users_auth_token: "{{ snapcenter_add_users_auth_response.json.User.Token }}"
+
+- name: Add admin user to SnapCenter with Admin role
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames=admin&RoleNames=SnapCenterAdmin"
+    method: POST
+    headers:
+      Token: "{{ snapcenter_add_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200, 201]
+  register: snapcenter_add_users_admin_result
+
+- name: Add additional users to SnapCenter via API
+  ansible.builtin.uri:
+    url: >-
+      https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames={{ item.username }}&RoleNames={{ item.snapcenter_role }}
+    method: POST
+    headers:
+      Token: "{{ snapcenter_add_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200, 201]
+  loop: "{{ vault_facts_snapcenter_users.users | default([]) }}"
+  when: vault_facts_snapcenter_users is defined
+  register: snapcenter_add_users_all_users_results
