@@ -1,16 +1,16 @@
 ---
 - name: Retrieve temporary root password from Hashicorp Vault
   ansible.builtin.set_fact:
-    vault_facts_root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/root_password_temp') }}"
+    vault_facts_root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/accounts-admin-root/root_password_temp') }}"
 
 - name: Retrieve admin password from Hashicorp Vault
   ansible.builtin.set_fact:
-    vault_facts_admin_password: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/admin_password') }}"
+    vault_facts_admin_password: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/accounts-admin-root/admin_password') }}"
 
 - name: Retrieve SnapCenter users from Hashicorp Vault
   ansible.builtin.set_fact:
-    vault_facts_snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/snapcenter_users') | from_json }}"
+    vault_facts_snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/accounts-users/snapcenter_users') | from_json }}"
 
 - name: Retrieve S3 resources bucket from Hashicorp Vault
   ansible.builtin.set_fact:
-    vault_facts_s3_resources_bucket: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/s3_resources_bucket') }}"
+    vault_facts_s3_resources_bucket: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/s3/s3_resources_bucket') }}"
