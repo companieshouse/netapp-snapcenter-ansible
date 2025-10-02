@@ -1,4 +1,4 @@
 ---
 mount_snapcenter_data_mount_point: "/opt"
-mount_snapcenter_data_device_name: "/dev/xvdf"
+mount_snapcenter_data_device_name: "/dev/nvme1n1"
 mount_snapcenter_data_filesystem_type: "xfs"
