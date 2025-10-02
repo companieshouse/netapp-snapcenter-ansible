@@ -14,3 +14,7 @@
 - name: Retrieve S3 resources bucket from Hashicorp Vault
   ansible.builtin.set_fact:
     vault_facts_s3_resources_bucket: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/s3/s3_resources_bucket') }}"
+
+- name: Retrieve S3 resources path from Hashicorp Vault
+  ansible.builtin.set_fact:
+    vault_facts_s3_resources_path: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/s3/s3_resources_path') }}"
