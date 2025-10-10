@@ -1,2 +1,2 @@
 ---
-vault_base_path: /applications/{{ aws_account }}-{{ aws_region }}/netapp/snapcenter-linux
+vault_base_path: /applications/{{ aws_profile }}/netapp/snapcenter-linux
