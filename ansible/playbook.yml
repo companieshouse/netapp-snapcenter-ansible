@@ -5,7 +5,7 @@
     - role: companieshouse.general.ssh_key
       vars:
         ssh_key_name: ansible_remote
-        ssh_key_vault_path: "{{ vault_base_path }}/ssh/ansible_private_key"
+        ssh_key_vault_path: "{{ vault_base_path }}/ansible"
 
 - name: NetApp SnapCenter install and setup
   hosts: aws_ec2
