@@ -3,3 +3,4 @@ snapcenter_install_args:
   - "-DWEBAPP_EXTERNAL_PORT={{ snapcenter_webapp_port }}"
   - "-DSELINUX=1"
   - "-DINSTALL_SWAGGER_UI=1"
+  - "-DSNAPCENTER_SERVER_USER=root"
