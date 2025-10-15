@@ -8,3 +8,4 @@ required_packages:
   - net-tools
   - nginx
   - pam-devel
+  - python3-boto3

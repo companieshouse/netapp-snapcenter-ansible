@@ -28,5 +28,5 @@
     password: "{{ item.password | password_hash('sha512') }}"
     state: present
     create_home: false
-  loop: "{{ vault_facts_snapcenter_users.users | default([]) }}"
+  loop: "{{ vault_facts_snapcenter_users | default([]) }}"
   when: vault_facts_snapcenter_users is defined
