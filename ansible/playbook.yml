@@ -9,7 +9,7 @@
 
 - name: NetApp SnapCenter install and setup
   hosts: aws_ec2
-  remote_user: ansible-user
+  remote_user: ec2-user
   become: true
   gather_facts: true
   roles:
