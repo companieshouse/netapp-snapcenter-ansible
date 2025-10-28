@@ -9,3 +9,4 @@ required_packages:
   - nginx
   - pam-devel
   - python3-boto3
+  - python3-passlib
