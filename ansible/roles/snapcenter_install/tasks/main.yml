@@ -4,7 +4,9 @@
     {{ snapcenter_tmp_dir }}/{{ snapcenter_binary }} -i silent
     {{ snapcenter_install_args | join(' ') }}
   args:
-    creates: "{{ snapcenter_install_dir }}"
+    creates: /etc/nginx/conf.d/snapcenter.conf
   become: true
+  become_user: root
+  become_flags: '-i'
   register: snapcenter_install_result
   notify: Wait for snapcenter services

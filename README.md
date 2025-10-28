@@ -34,7 +34,7 @@ Example secrets:
 ```json
 {
   "s3_resources_bucket": "bucket.eu-west-1.resources.com",
-  "s3_resources_path": "/snapcenter_installation_files"
+  "s3_resources_path": "snapcenter_installation_files"
 }
 ```
 
