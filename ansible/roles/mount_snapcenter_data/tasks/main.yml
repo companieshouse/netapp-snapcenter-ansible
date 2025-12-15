@@ -37,3 +37,12 @@
     owner: root
     group: root
     mode: '0755'
+
+- name: Grow XFS filesystem to use full volume size
+  ansible.builtin.command: xfs_growfs {{ mount_snapcenter_data_mount_point }}
+  when: mount_snapcenter_data_filesystem_type == "xfs"
+  register: mount_snapcenter_data_growfs_result
+  changed_when: "'data blocks changed' in mount_snapcenter_data_growfs_result.stdout"
+  failed_when:
+    - mount_snapcenter_data_growfs_result.rc != 0
+    - "'data blocks unchanged' not in mount_snapcenter_data_growfs_result.stdout"

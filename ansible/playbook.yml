@@ -7,7 +7,7 @@
         ssh_key_name: ansible_remote
         ssh_key_vault_path: "{{ vault_base_path }}/ansible"
 
-- name: NetApp SnapCenter install and setup
+- name: NetApp SnapCenter post-deployment configuration
   hosts: aws_ec2
   remote_user: ec2-user
   become: true
@@ -17,12 +17,6 @@
     - role: vault_facts
     - role: hostname
     - role: mount_snapcenter_data
-    - role: prerequisites
-    - role: mysql_setup
-    - role: selinux_config
-    - role: snapcenter_download
-    - role: snapcenter_install
-    - role: snapcenter_post_install
     - role: snapcenter_add_users
     - role: root_user_secure
     - role: companieshouse.security.security_scans
