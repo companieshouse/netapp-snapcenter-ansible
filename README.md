@@ -17,9 +17,6 @@ The playbook expects the following secrets in Hashicorp Vault:
 
 ```
 /applications/{aws_account}-{aws_region}/netapp/snapcenter-linux/
-├── s3/
-│   ├── s3_resources_bucket  # S3 bucket accessible to the instance
-│   └── s3_resources_path    # Base path within that bucket (version is specified in group_vars/snapcenter.yml)
 ├── accounts-admin-root/
 │   ├── admin_password       # SnapCenter admin user password
 │   └── root_password_temp   # Temporary root password used during setup
@@ -29,14 +26,6 @@ The playbook expects the following secrets in Hashicorp Vault:
 ```
 
 Example secrets:
-
-**s3/**
-```json
-{
-  "s3_resources_bucket": "bucket.eu-west-1.resources.com",
-  "s3_resources_path": "snapcenter_installation_files"
-}
-```
 
 **accounts-admin-root/**
 ```json
