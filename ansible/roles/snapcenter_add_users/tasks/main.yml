@@ -1,4 +1,23 @@
 ---
+- name: Create admin Linux user account
+  ansible.builtin.user:
+    name: admin
+    password: "{{ vault_facts_admin_password | password_hash('sha512') }}"
+    state: present
+    create_home: false
+    shell: /sbin/nologin
+
+- name: Create additional Linux user accounts
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    password: "{{ item.password | password_hash('sha512') }}"
+    state: present
+    create_home: false
+    shell: /sbin/nologin
+  loop: "{{ vault_facts_snapcenter_users | default([]) }}"
+  when: vault_facts_snapcenter_users is defined
+  no_log: true
+
 - name: Get API authentication token as root
   ansible.builtin.uri:
     url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
