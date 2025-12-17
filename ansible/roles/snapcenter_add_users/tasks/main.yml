@@ -50,9 +50,12 @@
   register: snapcenter_add_users_admin_result
 
 - name: Add additional users to SnapCenter via API
+  vars:
+    snapcenter_add_users_base_url: "https://localhost:{{ snapcenter_webapp_port }}"
+    snapcenter_add_users_api_path: "/api/{{ snapcenter_api_version }}/User"
+    snapcenter_add_users_query: "UserNames={{ item.username }}&RoleNames={{ item.snapcenter_role | urlencode }}"
   ansible.builtin.uri:
-    url: >-
-      https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames={{ item.username }}&RoleNames={{ item.snapcenter_role }}
+    url: "{{ snapcenter_add_users_base_url }}{{ snapcenter_add_users_api_path }}?{{ snapcenter_add_users_query }}"
     method: POST
     headers:
       Token: "{{ snapcenter_add_users_auth_token }}"
