@@ -17,6 +17,7 @@
     - role: vault_facts
     - role: hostname
     - role: mount_snapcenter_data
+    - role: reboot
     # - role: snapcenter_add_users
     - role: snapcenter_admin_verify
     # - role: root_user_secure
