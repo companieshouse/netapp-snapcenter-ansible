@@ -1,10 +1,10 @@
 ---
 - name: Reboot the server
   ansible.builtin.reboot:
-    reboot_timeout: 600
-    connect_timeout: 30
-    pre_reboot_delay: 5
-    post_reboot_delay: 30
+    reboot_timeout: 300
+    connect_timeout: 10
+    pre_reboot_delay: 0
+    post_reboot_delay: 10
     msg: "Reboot initiated by Ansible"
 
 - name: Verify server is responsive after reboot
@@ -16,11 +16,11 @@
     method: GET
     validate_certs: false
     status_code: 200
-  register: snapcenter_api_check
-  until: snapcenter_api_check is not failed
+  register: reboot_api_check
+  until: reboot_api_check is not failed
   retries: 30
   delay: 10
 
 - name: Display SnapCenter API version
   ansible.builtin.debug:
-    msg: "SnapCenter {{ snapcenter_api_check.json.ProductVersion }} ({{ snapcenter_api_check.json.ServerVersion }}) is ready"
+    msg: "SnapCenter {{ reboot_api_check.json.ProductVersion }} ({{ reboot_api_check.json.ServerVersion }}) is ready"
