@@ -1,5 +1,5 @@
 ---
-- name: Verify admin can authenticate with SnapCenter's API
+- name: Verify admin can authenticate with SnapCenter API
   ansible.builtin.uri:
     url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
     method: POST
