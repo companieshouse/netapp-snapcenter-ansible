@@ -9,3 +9,18 @@
 
 - name: Verify server is responsive after reboot
   ansible.builtin.ping:
+
+- name: Wait for the SnapCenter API
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/version"
+    method: GET
+    validate_certs: false
+    status_code: 200
+  register: snapcenter_api_check
+  until: snapcenter_api_check is not failed
+  retries: 30
+  delay: 10
+
+- name: Display SnapCenter API version
+  ansible.builtin.debug:
+    msg: "SnapCenter {{ snapcenter_api_check.json.ProductVersion }} ({{ snapcenter_api_check.json.ServerVersion }}) is ready"
