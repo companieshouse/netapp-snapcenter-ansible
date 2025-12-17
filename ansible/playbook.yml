@@ -20,5 +20,5 @@
     - role: reboot
     - role: snapcenter_add_users
     - role: snapcenter_admin_verify
-    # - role: root_user_secure
-    # - role: companieshouse.security.security_scans
+    - role: root_user_secure
+    - role: companieshouse.security.security_scans
