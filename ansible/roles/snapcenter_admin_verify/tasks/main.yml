@@ -17,6 +17,7 @@
   retries: 3
   delay: 5
   until: snapcenter_admin_verify_response.json.Result._errorCode == 0
+  failed_when: false
 
 - name: Stop if admin authentication fails
   ansible.builtin.fail:
