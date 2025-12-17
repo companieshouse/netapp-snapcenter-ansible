@@ -1,0 +1,49 @@
+---
+- name: Verify admin can authenticate with SnapCenter's API
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      UserOperationContext:
+        User:
+          Name: admin
+          Passphrase: "{{ vault_facts_admin_password }}"
+    validate_certs: false
+    return_content: true
+  register: snapcenter_admin_verify_response
+  retries: 3
+  delay: 5
+  until: snapcenter_admin_verify_response.json.Result._errorCode == 0
+
+- name: Stop if admin authentication fails
+  ansible.builtin.fail:
+    msg: >-
+      Admin account verification failed. Cannot proceed with securing root account.
+      Error: {{ snapcenter_admin_verify_response.json.Result._message | default('Unknown error') }}
+  when: >
+    snapcenter_admin_verify_response.json.Result._errorCode != 0
+    or snapcenter_admin_verify_response.json.User.Token is none
+
+- name: Fail if admin is not marked as an administrator
+  ansible.builtin.fail:
+    msg: >-
+      Admin account exists, but IsAdmin is false.
+  when: snapcenter_admin_verify_response.json.User.IsAdmin is not true
+
+- name: Fail if admin does not have SnapCenterAdmin role
+  ansible.builtin.fail:
+    msg: >-
+      Admin account exists, but does not have SnapCenterAdmin role.
+      Roles found: {{ snapcenter_admin_verify_response.json.User.RoleNames | default([]) }}
+  when: >
+    snapcenter_admin_verify_response.json.User.RoleNames is not defined
+    or snapcenter_admin_verify_response.json.User.RoleNames | selectattr('Value', 'equalto', 'SnapCenterAdmin') | list | length == 0
+
+- name: Admin account verified
+  ansible.builtin.debug:
+    msg: >-
+      Admin account verified successfully.
+      It is safe to secure the root account.
