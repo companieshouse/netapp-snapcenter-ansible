@@ -29,7 +29,7 @@
     hostname_zone: "{{ hostname_zone_result.stdout | trim }}"
     hostname_fqdn: "{{ hostname_tag_result.stdout | trim }}.{{ hostname_zone_result.stdout | trim }}"
 
-- name: Set Hostname and FQDN using hostnamectl
-  ansible.builtin.command: hostnamectl set-hostname {{ hostname_fqdn }}
+- name: Set Hostname and FQDN
+  ansible.builtin.hostname:
+    name: "{{ hostname_fqdn }}"
   when: hostname_short | trim != "" and hostname_zone | trim != ""
-  changed_when: true
