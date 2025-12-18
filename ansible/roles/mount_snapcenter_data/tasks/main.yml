@@ -21,7 +21,7 @@
   ansible.builtin.file:
     path: "{{ mount_snapcenter_data_mount_point }}"
     state: directory
-    mode: '0755'
+    mode: "0755"
 
 - name: Mount EBS volume
   ansible.posix.mount:
@@ -30,13 +30,14 @@
     fstype: "{{ mount_snapcenter_data_filesystem_type }}"
     state: mounted
     opts: defaults,nofail
+  register: mount_snapcenter_data_mount_result
 
 - name: Set correct ownership on mount point
   ansible.builtin.file:
     path: "{{ mount_snapcenter_data_mount_point }}"
     owner: root
     group: root
-    mode: '0755'
+    mode: "0755"
 
 - name: Grow XFS filesystem to use full volume size
   ansible.builtin.command: xfs_growfs {{ mount_snapcenter_data_mount_point }}
