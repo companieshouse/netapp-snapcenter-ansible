@@ -33,3 +33,4 @@
   ansible.builtin.hostname:
     name: "{{ hostname_fqdn }}"
   when: hostname_short | trim != "" and hostname_zone | trim != ""
+  register: hostname_result

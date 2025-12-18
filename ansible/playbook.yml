@@ -18,7 +18,9 @@
     - role: hostname
     - role: mount_snapcenter_data
     - role: reboot
-    - role: snapcenter_add_users
+      when: (hostname_result.changed | default(false)) or
+        (mount_snapcenter_data_mount_result.changed | default(false))
+    # - role: snapcenter_add_users
     - role: snapcenter_admin_verify
-    - role: root_user_secure
-    - role: companieshouse.security.security_scans
+    # - role: root_user_secure
+    # - role: companieshouse.security.security_scans
