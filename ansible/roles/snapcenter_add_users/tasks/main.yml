@@ -35,6 +35,16 @@
   register: snapcenter_add_users_admin_auth
   failed_when: false
 
+- name: Debug admin auth response
+  ansible.builtin.debug:
+    msg:
+      error_code: "{{ snapcenter_add_users_admin_auth.json.Result._errorCode }}"
+      error_code_type: "{{ snapcenter_add_users_admin_auth.json.Result._errorCode | type_debug }}"
+      token: "{{ snapcenter_add_users_admin_auth.json.User.Token }}"
+      token_type: "{{ snapcenter_add_users_admin_auth.json.User.Token | type_debug }}"
+      token_is_none: "{{ snapcenter_add_users_admin_auth.json.User.Token is none }}"
+      token_is_not_none: "{{ snapcenter_add_users_admin_auth.json.User.Token is not none }}"
+
 - name: Set `admin` auth token
   ansible.builtin.set_fact:
     snapcenter_add_users_auth_token: "{{ snapcenter_add_users_admin_auth.json.User.Token }}"
