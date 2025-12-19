@@ -22,6 +22,7 @@
         (mount_snapcenter_data_mount_result.changed | default(false))
     - role: snapcenter_add_users
     - role: snapcenter_admin_verify
+      when: snapcenter_add_users_authenticated_as == 'root'
     - role: root_user_secure
       when: snapcenter_add_users_authenticated_as == 'root'
     - role: companieshouse.security.security_scans
