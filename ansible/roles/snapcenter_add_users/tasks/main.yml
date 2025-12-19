@@ -18,7 +18,32 @@
   when: vault_facts_snapcenter_users is defined
   no_log: true
 
-- name: Get API authentication token as root
+- name: Try `admin` authentication with SnapCenter API
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      UserOperationContext:
+        User:
+          Name: admin
+          Passphrase: "{{ vault_facts_admin_password }}"
+    validate_certs: false
+    return_content: true
+  register: snapcenter_add_users_admin_auth
+  failed_when: false
+
+- name: Set `admin` auth token
+  ansible.builtin.set_fact:
+    snapcenter_add_users_auth_token: "{{ snapcenter_add_users_admin_auth.json.User.Token }}"
+    snapcenter_add_users_authenticated_as: admin
+  when:
+    - snapcenter_add_users_admin_auth.json.Result._errorCode == 0
+    - snapcenter_add_users_admin_auth.json.User.Token is not none
+
+- name: Try `root` authentication with SnapCenter API
   ansible.builtin.uri:
     url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
     method: POST
@@ -32,11 +57,30 @@
           Passphrase: "{{ vault_facts_root_password_temp }}"
     validate_certs: false
     return_content: true
-  register: snapcenter_add_users_auth_response
+  register: snapcenter_add_users_root_auth
+  when: snapcenter_add_users_auth_token is not defined
+  failed_when: false
 
-- name: Extract authentication token
+- name: Set `root` auth token
   ansible.builtin.set_fact:
-    snapcenter_add_users_auth_token: "{{ snapcenter_add_users_auth_response.json.User.Token }}"
+    snapcenter_add_users_auth_token: "{{ snapcenter_add_users_root_auth.json.User.Token }}"
+    snapcenter_add_users_authenticated_as: root
+  when:
+    - snapcenter_add_users_auth_token is not defined
+    - snapcenter_add_users_root_auth.json.Result._errorCode | default(-1) == 0
+    - snapcenter_add_users_root_auth.json.User.Token | default(none) is not none
+
+- name: Fail if both `admin` and `root` cannot authenticate with SnapCenter API
+  ansible.builtin.fail:
+    msg: >-
+      Could not authenticate with SnapCenter API using either `admin` or `root`.
+      Admin response: {{ snapcenter_add_users_admin_auth.json.Result._message | default('No response') }}
+      Root response: {{ snapcenter_add_users_root_auth.json.Result._message | default('Not attempted or no response') }}
+  when: snapcenter_add_users_auth_token is not defined
+
+- name: Show the account used for SnapCenter API authentication
+  ansible.builtin.debug:
+    msg: "`{{ snapcenter_add_users_authenticated_as }}` successfully authenticated with SnapCenter API"
 
 - name: Add admin user to SnapCenter with Admin role
   ansible.builtin.uri:
@@ -48,6 +92,7 @@
     validate_certs: false
     status_code: [200, 201]
   register: snapcenter_add_users_admin_result
+  when: snapcenter_add_users_authenticated_as == 'root'
 
 - name: Add additional users to SnapCenter via API
   vars:
