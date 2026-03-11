@@ -1,0 +1,12 @@
+---
+- name: Retrieve temporary root password from Hashicorp Vault
+  ansible.builtin.set_fact:
+    vault_root_password_temp: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/accounts-admin-root:root_password_temp') }}"
+
+- name: Retrieve admin password from Hashicorp Vault
+  ansible.builtin.set_fact:
+    vault_admin_password: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/accounts-admin-root:admin_password') }}"
+
+- name: Retrieve SnapCenter users from Hashicorp Vault
+  ansible.builtin.set_fact:
+    vault_snapcenter_users: "{{ lookup('community.hashi_vault.hashi_vault', vault_base_path + '/accounts-users:snapcenter_users') }}"

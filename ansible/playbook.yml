@@ -13,8 +13,8 @@
   become: true
   gather_facts: true
   roles:
-    - role: instance_facts
-    - role: vault_facts
+    - role: ec2_tags
+    - role: vault
     - role: hostname
     - role: mount_snapcenter_data
     - role: reboot

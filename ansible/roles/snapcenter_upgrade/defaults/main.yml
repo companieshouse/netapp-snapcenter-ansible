@@ -1,0 +1,3 @@
+---
+snapcenter_upgrade_installer_path: /tmp/snapcenter_linux_server.bin
+snapcenter_upgrade_log_name: InstallerLog.log
