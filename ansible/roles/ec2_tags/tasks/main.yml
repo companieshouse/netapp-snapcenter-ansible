@@ -15,10 +15,3 @@
     - ec2_instance_id
   loop_control:
     label: "{{ item }}"
-
-- name: Validate environment_name is set
-  ansible.builtin.assert:
-    that:
-      - environment_name is defined
-      - environment_name in ['development', 'staging', 'live']
-    fail_msg: "environment_name must be passed as --extra-vars and be one of: development, staging, live"
