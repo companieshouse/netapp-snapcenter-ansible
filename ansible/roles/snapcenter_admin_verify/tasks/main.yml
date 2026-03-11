@@ -10,7 +10,7 @@
       UserOperationContext:
         User:
           Name: admin
-          Passphrase: "{{ vault_facts_admin_password }}"
+          Passphrase: "{{ vault_admin_password }}"
     validate_certs: false
     return_content: true
   register: snapcenter_admin_verify_response
