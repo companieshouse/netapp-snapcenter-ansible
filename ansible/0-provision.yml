@@ -1,11 +1,5 @@
 ---
-- name: Provision Ansible controller with SSH key for remote
-  hosts: localhost
-  roles:
-    - role: companieshouse.general.ssh_key
-      vars:
-        ssh_key_name: ansible_remote
-        ssh_key_vault_path: "{{ vault_base_path }}/ansible"
+- import_playbook: ansible-ssh-key.yml
 
 - name: NetApp SnapCenter post-deployment configuration
   hosts: aws_ec2
@@ -25,4 +19,4 @@
       when: snapcenter_add_users_authenticated_as == 'root'
     - role: root_user_secure
       when: snapcenter_add_users_authenticated_as == 'root'
-    - role: companieshouse.security.security_scans
+    # - role: companieshouse.security.security_scans

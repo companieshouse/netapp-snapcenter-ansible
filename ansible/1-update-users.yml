@@ -1,0 +1,13 @@
+---
+- import_playbook: ansible-ssh-key.yml
+
+- name: Update SnapCenter Users
+  hosts: aws_ec2
+  remote_user: ec2-user
+  become: true
+  gather_facts: true
+  roles:
+    - role: ec2_tags
+    - role: vault
+    - role: snapcenter_update_users
+    # - role: companieshouse.security.security_scans
