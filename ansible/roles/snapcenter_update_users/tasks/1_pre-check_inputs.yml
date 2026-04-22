@@ -1,0 +1,39 @@
+---
+- name: Fail if vault_snapcenter_users is missing or empty
+  ansible.builtin.fail:
+    msg: >-
+      vault_snapcenter_users must be a non-empty list. Refusing to run
+      to avoid deleting every managed SnapCenter user. Check the Vault
+      secret at {{ vault_base_path }}/accounts-users.
+  when: >-
+    vault_snapcenter_users is not defined
+    or vault_snapcenter_users is not iterable
+    or (vault_snapcenter_users | length) == 0
+
+- name: Fail if any Vault user entry is missing required keys
+  ansible.builtin.fail:
+    msg: >-
+      Vault user entry at index {{ ansible_loop.index0 }} is missing required
+      keys. Each entry needs: username, password, snapcenter_roles (non-empty list).
+  loop: "{{ vault_snapcenter_users }}"
+  loop_control:
+    extended: true
+    label: "{{ item.username | default('<no username>') }}"
+  when: >-
+    item.username is not defined
+    or item.password is not defined
+    or item.snapcenter_roles is not defined
+    or item.snapcenter_roles is not iterable
+    or (item.snapcenter_roles | length) == 0
+  no_log: true
+
+- name: Fail if any Vault user targets the reserved `admin` or `root` name
+  ansible.builtin.fail:
+    msg: >-
+      Vault user entry uses a reserved username ({{ item.username }}).
+      `admin` and `root` are managed separately and must not appear in
+      vault_snapcenter_users.
+  loop: "{{ vault_snapcenter_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  when: item.username in ['admin', 'root']

@@ -1,0 +1,22 @@
+---
+- name: Ensure admin Linux account is present with current password
+  ansible.builtin.user:
+    name: admin
+    password: "{{ vault_admin_password | password_hash('sha512') }}"
+    update_password: always
+    state: present
+    create_home: false
+    shell: /sbin/nologin
+
+- name: Ensure managed Linux accounts are present with current passwords
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    password: "{{ item.password | password_hash('sha512') }}"
+    update_password: always
+    state: present
+    create_home: false
+    shell: /sbin/nologin
+  loop: "{{ vault_snapcenter_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  no_log: true

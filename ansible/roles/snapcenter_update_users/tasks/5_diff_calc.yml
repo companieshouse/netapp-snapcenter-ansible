@@ -1,0 +1,39 @@
+---
+- name: Compute users to delete and to create
+  ansible.builtin.set_fact:
+    snapcenter_update_users_to_delete: >-
+      {{
+        snapcenter_update_users_current.keys()
+        | difference(snapcenter_update_users_desired.keys())
+        | list
+      }}
+    snapcenter_update_users_to_create: >-
+      {{
+        snapcenter_update_users_desired.keys()
+        | difference(snapcenter_update_users_current.keys())
+        | list
+      }}
+    snapcenter_update_users_to_reconcile: []
+
+- name: Find users whose role set differs between SnapCenter and Vault
+  ansible.builtin.set_fact:
+    snapcenter_update_users_to_reconcile: >-
+      {{
+        snapcenter_update_users_to_reconcile
+        + ([item] if snapcenter_update_users_current[item] != snapcenter_update_users_desired[item] else [])
+      }}
+  loop: >-
+    {{
+      snapcenter_update_users_current.keys()
+      | intersect(snapcenter_update_users_desired.keys())
+      | list
+    }}
+  loop_control:
+    label: "{{ item }}"
+
+- name: Show reconciliation plan
+  ansible.builtin.debug:
+    msg:
+      - "To delete (absent from Vault):    {{ snapcenter_update_users_to_delete }}"
+      - "To create (new in Vault):         {{ snapcenter_update_users_to_create }}"
+      - "To reconcile (role drift):        {{ snapcenter_update_users_to_reconcile }}"

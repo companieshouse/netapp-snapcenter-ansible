@@ -1,0 +1,7 @@
+---
+- name: Create new users in SnapCenter
+  ansible.builtin.include_tasks: helpers/create_user.yml
+  loop: "{{ snapcenter_update_users_to_create }}"
+  loop_control:
+    loop_var: sc_new_user
+    label: "{{ sc_new_user }}"

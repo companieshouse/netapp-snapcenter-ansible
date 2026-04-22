@@ -1,0 +1,44 @@
+---
+- name: Re-fetch SnapCenter users for validation
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/users?Filter=User"
+    method: GET
+    headers:
+      Token: "{{ snapcenter_update_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200]
+  register: snapcenter_update_users_validate_get
+
+- name: Build post-reconcile map of SnapCenter users -> roles
+  ansible.builtin.set_fact:
+    snapcenter_update_users_post: >-
+      {{
+        snapcenter_update_users_post | default({}) | combine({
+          item.Name: (item.RoleNames | map(attribute='Value') | sort | list)
+        })
+      }}
+  loop: "{{ snapcenter_update_users_validate_get.json.Users }}"
+  loop_control:
+    label: "{{ item.Name }}"
+  when: item.Name not in ['admin', 'root']
+
+- name: Ensure post map exists even if only admin/root remain
+  ansible.builtin.set_fact:
+    snapcenter_update_users_post: "{{ snapcenter_update_users_post | default({}) }}"
+
+- name: Show post-reconcile state
+  ansible.builtin.debug:
+    msg:
+      - "Post-reconcile: {{ snapcenter_update_users_post }}"
+      - "Desired:        {{ snapcenter_update_users_desired }}"
+
+- name: Assert post-reconcile state matches desired state
+  ansible.builtin.assert:
+    that:
+      - snapcenter_update_users_post == snapcenter_update_users_desired
+    fail_msg: >-
+      SnapCenter state does not match Vault after reconciliation.
+      Post-reconcile: {{ snapcenter_update_users_post }}
+      Desired:        {{ snapcenter_update_users_desired }}
+    success_msg: "SnapCenter user state matches Vault exactly."
