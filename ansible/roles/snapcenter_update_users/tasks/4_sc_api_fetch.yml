@@ -20,7 +20,7 @@
       }}
   loop: "{{ snapcenter_update_users_get_result.json.Users }}"
   loop_control:
-    label: "{{ item.Name }}"
+    label: ""
   when: item.Name not in ['admin', 'root']
 
 - name: Ensure current map exists even if the API returned no managed users

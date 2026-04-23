@@ -29,11 +29,22 @@
       | list
     }}
   loop_control:
-    label: "{{ item }}"
+    label: ""
 
 - name: Show reconciliation plan
   ansible.builtin.debug:
-    msg:
-      - "To delete (absent from Vault):    {{ snapcenter_update_users_to_delete }}"
-      - "To create (new in Vault):         {{ snapcenter_update_users_to_create }}"
-      - "To reconcile (role drift):        {{ snapcenter_update_users_to_reconcile }}"
+    msg: "{{ plan_lines }}"
+  vars:
+    plan_lines: >-
+      {{
+        (['To delete (absent from Vault): ' ~ (snapcenter_update_users_to_delete | join(', '))]
+          if snapcenter_update_users_to_delete | length > 0 else [])
+        + (['To create (new in Vault):      ' ~ (snapcenter_update_users_to_create | join(', '))]
+          if snapcenter_update_users_to_create | length > 0 else [])
+        + (['To reconcile (role drift):     ' ~ (snapcenter_update_users_to_reconcile | join(', '))]
+          if snapcenter_update_users_to_reconcile | length > 0 else [])
+        + (['No changes required.']
+          if (snapcenter_update_users_to_delete
+              + snapcenter_update_users_to_create
+              + snapcenter_update_users_to_reconcile) | length == 0 else [])
+      }}

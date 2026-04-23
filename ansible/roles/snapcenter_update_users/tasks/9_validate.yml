@@ -10,7 +10,7 @@
     status_code: [200]
   register: snapcenter_update_users_validate_get
 
-- name: Build post-reconcile map of SnapCenter users -> roles
+- name: Build post-reconcile map of SnapCenter users and roles
   ansible.builtin.set_fact:
     snapcenter_update_users_post: >-
       {{
@@ -20,7 +20,7 @@
       }}
   loop: "{{ snapcenter_update_users_validate_get.json.Users }}"
   loop_control:
-    label: "{{ item.Name }}"
+    label: ""
   when: item.Name not in ['admin', 'root']
 
 - name: Ensure post map exists even if only admin/root remain
@@ -29,9 +29,10 @@
 
 - name: Show post-reconcile state
   ansible.builtin.debug:
-    msg:
-      - "Post-reconcile: {{ snapcenter_update_users_post }}"
-      - "Desired:        {{ snapcenter_update_users_desired }}"
+    msg: "{{ item.key }}: {{ item.value | join(', ') }}"
+  loop: "{{ snapcenter_update_users_post | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
 
 - name: Assert post-reconcile state matches desired state
   ansible.builtin.assert:
