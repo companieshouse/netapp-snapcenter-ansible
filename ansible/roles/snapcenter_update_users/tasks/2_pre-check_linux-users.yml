@@ -1,13 +1,12 @@
 ---
-- name: Ensure admin Linux account exists
+- name: Ensure Linux admin account exists
   ansible.builtin.user:
     name: admin
     state: present
     create_home: false
     shell: /sbin/nologin
-  register: snapcenter_update_users_admin_user
 
-- name: Ensure managed Linux accounts exist
+- name: Ensure Linux user accounts exist
   ansible.builtin.user:
     name: "{{ item.username }}"
     state: present
@@ -45,7 +44,7 @@
     label: "{{ item }}"
   no_log: true
 
-- name: Ensure admin Linux account has current password
+- name: Ensure Linux admin account has current password
   ansible.builtin.user:
     name: admin
     password: >-
@@ -54,9 +53,18 @@
         | password_hash('sha512', snapcenter_update_users_shadow_salts['admin'])
       }}
     update_password: always
+  register: snapcenter_update_users_admin_pw_result
   no_log: true
 
-- name: Ensure managed Linux accounts have current passwords
+- name: Report whether admin password was updated
+  ansible.builtin.debug:
+    msg: >-
+      admin password: {{
+        'updated' if snapcenter_update_users_admin_pw_result.changed
+        else 'unchanged'
+      }}
+
+- name: Ensure Linux user accounts have current passwords
   ansible.builtin.user:
     name: "{{ item.username }}"
     password: >-
@@ -68,4 +76,21 @@
   loop: "{{ vault_snapcenter_users }}"
   loop_control:
     label: "{{ item.username }}"
+  register: snapcenter_update_users_pw_results
   no_log: true
+
+- name: List Linux users whose password changed
+  ansible.builtin.debug:
+    msg:
+      - "Updated:   {{
+        snapcenter_update_users_pw_results.results
+        | selectattr('changed', 'equalto', true)
+        | map(attribute='item.username')
+        | list
+        }}"
+      - "Unchanged: {{
+        snapcenter_update_users_pw_results.results
+        | rejectattr('changed', 'equalto', true)
+        | map(attribute='item.username')
+        | list
+        }}"
