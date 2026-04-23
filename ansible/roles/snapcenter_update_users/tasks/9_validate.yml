@@ -42,4 +42,4 @@
       SnapCenter state does not match Vault after reconciliation.
       Post-reconcile: {{ snapcenter_update_users_post }}
       Desired:        {{ snapcenter_update_users_desired }}
-    success_msg: "SnapCenter user state matches Vault exactly."
+    success_msg: "SnapCenter user state matches Vault"
