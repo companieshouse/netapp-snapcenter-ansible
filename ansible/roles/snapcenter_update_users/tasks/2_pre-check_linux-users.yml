@@ -1,0 +1,71 @@
+---
+- name: Ensure admin Linux account exists
+  ansible.builtin.user:
+    name: admin
+    state: present
+    create_home: false
+    shell: /sbin/nologin
+  register: snapcenter_update_users_admin_user
+
+- name: Ensure managed Linux accounts exist
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    state: present
+    create_home: false
+    shell: /sbin/nologin
+  loop: "{{ vault_snapcenter_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+
+- name: Read current password hashes from /etc/shadow
+  ansible.builtin.getent:
+    database: shadow
+    key: "{{ item }}"
+  loop: "{{ ['admin'] + (vault_snapcenter_users | map(attribute='username') | list) }}"
+  loop_control:
+    label: "{{ item }}"
+  no_log: true
+
+- name: Build map of usernames with existing shadow salt
+  ansible.builtin.set_fact:
+    snapcenter_update_users_shadow_salts: >-
+      {{
+        snapcenter_update_users_shadow_salts | default({})
+        | combine({
+            item: (
+              (getent_shadow[item][0].split('$')[3])
+              if (getent_shadow[item] is defined
+                  and (getent_shadow[item][0] | default('')).split('$') | length >= 4)
+              else (65534 | random(seed=item) | string)
+            )
+          })
+      }}
+  loop: "{{ ['admin'] + (vault_snapcenter_users | map(attribute='username') | list) }}"
+  loop_control:
+    label: "{{ item }}"
+  no_log: true
+
+- name: Ensure admin Linux account has current password
+  ansible.builtin.user:
+    name: admin
+    password: >-
+      {{
+        vault_admin_password
+        | password_hash('sha512', snapcenter_update_users_shadow_salts['admin'])
+      }}
+    update_password: always
+  no_log: true
+
+- name: Ensure managed Linux accounts have current passwords
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    password: >-
+      {{
+        item.password
+        | password_hash('sha512', snapcenter_update_users_shadow_salts[item.username])
+      }}
+    update_password: always
+  loop: "{{ vault_snapcenter_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  no_log: true

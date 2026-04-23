@@ -2,8 +2,8 @@
 - name: 1/9 Pre-check Inputs
   ansible.builtin.include_tasks: 1_pre-check_inputs.yml
 
-- name: 2/9 Pre-check Admin Accounts
-  ansible.builtin.include_tasks: 2_pre-check_admin.yml
+- name: 2/9 Pre-check Linux Users
+  ansible.builtin.include_tasks: 2_pre-check_linux-users.yml
 
 - name: 3/9 SnapCenter API - Authenticate & Get Token
   ansible.builtin.include_tasks: 3_sc_api_auth.yml

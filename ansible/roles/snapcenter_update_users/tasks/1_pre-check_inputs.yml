@@ -1,12 +1,4 @@
 ---
-- name: DEBUG - inspect vault_snapcenter_users
-  ansible.builtin.debug:
-    msg:
-      - "Type: {{ vault_snapcenter_users | type_debug }}"
-      - "Length: {{ vault_snapcenter_users | length }}"
-      - "First item type: {{ (vault_snapcenter_users[0]) | type_debug }}"
-      - "First item: {{ vault_snapcenter_users[0] }}"
-
 - name: Fail if vault_snapcenter_users is missing or empty
   ansible.builtin.fail:
     msg: >-
