@@ -58,11 +58,8 @@
 
 - name: Report whether admin password was updated
   ansible.builtin.debug:
-    msg: >-
-      admin password: {{
-        'updated' if snapcenter_update_users_admin_pw_result.changed
-        else 'unchanged'
-      }}
+    msg: "New Admin password found in vault, updated in-place"
+  when: snapcenter_update_users_admin_pw_result.changed
 
 - name: Ensure Linux user accounts have current passwords
   ansible.builtin.user:
@@ -81,16 +78,10 @@
 
 - name: List Linux users whose password changed
   ansible.builtin.debug:
-    msg:
-      - "Updated:   {{
-        snapcenter_update_users_pw_results.results
-        | selectattr('changed', 'equalto', true)
-        | map(attribute='item.username')
-        | list
-        }}"
-      - "Unchanged: {{
-        snapcenter_update_users_pw_results.results
-        | rejectattr('changed', 'equalto', true)
-        | map(attribute='item.username')
-        | list
-        }}"
+    msg: >-
+      New passwords found in vault and applied for:
+      {{ snapcenter_update_users_pw_results.results
+         | selectattr('changed', 'equalto', true)
+         | map(attribute='item.username') | list }}
+  when: snapcenter_update_users_pw_results.results
+    | selectattr('changed', 'equalto', true) | list | length > 0
