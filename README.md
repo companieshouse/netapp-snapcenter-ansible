@@ -18,12 +18,8 @@ The playbook expects the following secrets in Hashicorp Vault:
 
 ```
 /applications/{aws_account}-{aws_region}/netapp/snapcenter-linux/
-├── accounts-admin-root/
-│   ├── admin_password       # SnapCenter admin user password
-│   └── root_password_temp   # Temporary root password used during setup
-└── accounts-users/
-    └── snapcenter_users     # Array of SnapCenter users
-
+├── accounts-admin-root     # Contains: root_password_temp, admin_password
+└── accounts-users          # Contains: snapcenter_users (array)
 ```
 
 Example secrets:
@@ -43,23 +39,32 @@ Example secrets:
     {
       "username": "alexsmith",
       "password": "cba321",
-      "snapcenter_role": "SnapCenterAdmin"
+      "snapcenter_roles": [
+        "SnapCenterAdmin"
+      ]
     },
     {
       "username": "charliejones",
       "password": "987zyx",
-      "snapcenter_role": "App Backup and Clone Admin"
+      "snapcenter_roles": [
+        "App Backup and Clone Admin"
+      ]
     },
     {
       "username": "samwilliams",
       "password": "abc123",
-      "snapcenter_role": "Backup and Clone Viewer"
+      "snapcenter_roles": [
+        "Backup and Clone Viewer"
+      ]
     },
     {
       "username": "robinevans",
       "password": "789xyz",
-      "snapcenter_role": "Infrastructure Admin"
-    },
+      "snapcenter_roles": [
+        "Infrastructure Admin",
+        "Backup and Clone Viewer"
+      ]
+    }
   ]
 }
 ```
