@@ -19,9 +19,8 @@
         })
       }}
   loop: "{{ snapcenter_update_users_validate_get.json.Users }}"
-  loop_control:
-    label: ""
   when: item.Name not in ['admin', 'root']
+  no_log: true
 
 - name: Ensure post map exists even if only admin/root remain
   ansible.builtin.set_fact:
