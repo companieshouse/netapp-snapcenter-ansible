@@ -10,7 +10,7 @@
     status_code: [200]
   register: snapcenter_update_users_get_result
 
-- name: Build map of current SnapCenter users -> roles
+- name: Build map of current SnapCenter users and roles
   ansible.builtin.set_fact:
     snapcenter_update_users_current: >-
       {{
@@ -19,9 +19,8 @@
         })
       }}
   loop: "{{ snapcenter_update_users_get_result.json.Users }}"
-  loop_control:
-    label: ""
   when: item.Name not in ['admin', 'root']
+  no_log: true
 
 - name: Ensure current map exists even if the API returned no managed users
   ansible.builtin.set_fact:
