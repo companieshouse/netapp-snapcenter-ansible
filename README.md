@@ -113,4 +113,7 @@ _snapcenter_public_key.pub_
 Upload these to a new version directory in Shared Services e.g.
 _s3://shared-services.eu-west-2.resources.ch.gov.uk/netapp_snapcenter/**6.1P2/snapcenter-linux-server.el9.bin.sig**_
 
-Update `ansible/group_vars/all/snapcenter.yml` accordingly.
+Update your pipeline (netapp-snapcenter) job with the appropriate params var e.g.
+`ANSIBLE_EXTRA_VARS: "snapcenter_version=6.2P1"`
+
+Optionally, update `ansible/group_vars/all/snapcenter.yml` to set a new default.
