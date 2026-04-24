@@ -22,14 +22,18 @@
       - "{{ (snapcenter_upgrade_target.split('P')[0]).split('.') | map('int') | list }}"
       - "{{ (snapcenter_upgrade_target.split('P')[1] | default('0')) | int }}"
 
-- name: Fail if target version is older than installed version
-  ansible.builtin.fail:
-    msg: >-
-      Refusing to run: target version ({{ snapcenter_upgrade_target }}) is older
-      than the installed version ({{ snapcenter_upgrade_current }}). SnapCenter
-      does not support in-place downgrades. Check snapcenter_version in
-      group_vars/all/snapcenter.yml.
+- name: Skip run if target version is older than installed version
   when: snapcenter_upgrade_target_parts < snapcenter_upgrade_current_parts
+  block:
+    - name: Show downgrade skip reason
+      ansible.builtin.debug:
+        msg: |
+          Skipping: target version ({{ snapcenter_upgrade_target }}) is older than the installed version ({{ snapcenter_upgrade_current }}).
+          SnapCenter does not support in-place downgrades.
+          Check snapcenter_version in group_vars/all/snapcenter.yml if this is unexpected.
+
+    - name: End play for this host
+      ansible.builtin.meta: end_host
 
 - name: Determine whether upgrade is required
   ansible.builtin.set_fact:
