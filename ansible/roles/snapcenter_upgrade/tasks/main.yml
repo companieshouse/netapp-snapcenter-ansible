@@ -1,0 +1,33 @@
+---
+- name: 1/8 Pre-check current version
+  ansible.builtin.include_tasks: 1_pre-check_version.yml
+
+- name: 2/8 Pre-check for running or queued jobs
+  ansible.builtin.include_tasks: 2_pre-check_jobs.yml
+  when: snapcenter_upgrade_required
+
+- name: 3/8 Snapshot data volume (pre-upgrade)
+  ansible.builtin.include_tasks: 3_snapshot_data_volume.yml
+  when:
+    - snapcenter_upgrade_required
+    - snapcenter_upgrade_snapshot_enabled
+
+- name: 4/8 Download installer from S3 and verify checksum
+  ansible.builtin.include_tasks: 4_download_installer.yml
+  when: snapcenter_upgrade_required
+
+- name: 5/8 Run silent upgrade
+  ansible.builtin.include_tasks: 5_run_upgrade.yml
+  when: snapcenter_upgrade_required
+
+- name: 6/8 Wait for SnapCenter API to come back online
+  ansible.builtin.include_tasks: 6_wait_for_api.yml
+  when: snapcenter_upgrade_required
+
+- name: 7/8 Verify new version matches target
+  ansible.builtin.include_tasks: 7_verify_version.yml
+  when: snapcenter_upgrade_required
+
+- name: 8/8 Cleanup
+  ansible.builtin.include_tasks: 8_cleanup.yml
+  when: snapcenter_upgrade_required

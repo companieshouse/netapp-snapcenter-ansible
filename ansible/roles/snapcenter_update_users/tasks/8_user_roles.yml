@@ -1,0 +1,7 @@
+---
+- name: Reconcile roles for users with role drift
+  ansible.builtin.include_tasks: helpers/reconcile_roles.yml
+  loop: "{{ snapcenter_update_users_to_reconcile }}"
+  loop_control:
+    loop_var: sc_drift_user
+    label: "{{ sc_drift_user }}"

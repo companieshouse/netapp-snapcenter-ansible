@@ -1,0 +1,40 @@
+---
+- name: Fetch current SnapCenter users
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/users?Filter=User"
+    method: GET
+    headers:
+      Token: "{{ snapcenter_update_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200]
+  register: snapcenter_update_users_get_result
+
+- name: Build map of current SnapCenter users and roles
+  ansible.builtin.set_fact:
+    snapcenter_update_users_current: >-
+      {{
+        snapcenter_update_users_current | default({}) | combine({
+          item.Name: (item.RoleNames | map(attribute='Value') | sort | list)
+        })
+      }}
+  loop: "{{ snapcenter_update_users_get_result.json.Users }}"
+  when: item.Name not in ['admin', 'root']
+  no_log: true
+
+- name: Ensure current map exists even if the API returned no managed users
+  ansible.builtin.set_fact:
+    snapcenter_update_users_current: "{{ snapcenter_update_users_current | default({}) }}"
+
+- name: Build map of desired users -> roles from Vault
+  ansible.builtin.set_fact:
+    snapcenter_update_users_desired: >-
+      {{
+        snapcenter_update_users_desired | default({}) | combine({
+          item.username: (item.snapcenter_roles | sort | list)
+        })
+      }}
+  loop: "{{ vault_snapcenter_users }}"
+  loop_control:
+    label: "{{ item.username }}"
+  no_log: true

@@ -1,0 +1,12 @@
+---
+- name: Validate if SnapCenter now reports as running the target version
+  ansible.builtin.assert:
+    that:
+      - snapcenter_upgrade_api_check.json.ProductVersion == snapcenter_upgrade_target
+    fail_msg: >-
+      SnapCenter upgrade did not result in the target version.
+      Expected: {{ snapcenter_upgrade_target }}
+      Got:      {{ snapcenter_upgrade_api_check.json.ProductVersion }}
+    success_msg: >-
+      SnapCenter successfully upgraded to {{ snapcenter_upgrade_api_check.json.ProductVersion }}
+      ({{ snapcenter_upgrade_api_check.json.ServerVersion }})

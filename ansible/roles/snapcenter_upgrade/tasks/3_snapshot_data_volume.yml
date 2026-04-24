@@ -1,0 +1,57 @@
+---
+- name: Get EC2 instance block device mappings
+  amazon.aws.ec2_instance_info:
+    instance_ids:
+      - "{{ ec2_instance_id }}"
+    region: "{{ aws_region }}"
+  register: snapcenter_upgrade_instance_info
+  delegate_to: localhost
+  become: false
+
+- name: Resolve EBS volume ID for the SnapCenter data volume
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_data_volume_id: >-
+      {{
+        snapcenter_upgrade_instance_info.instances[0].block_device_mappings
+        | rejectattr('device_name', 'equalto',
+            snapcenter_upgrade_instance_info.instances[0].root_device_name)
+        | map(attribute='ebs.volume_id')
+        | first
+      }}
+
+- name: Fail if the data volume could not be resolved
+  ansible.builtin.fail:
+    msg: >-
+      Could not identify the SnapCenter data EBS volume on instance
+      {{ ec2_instance_id }}. Aborting before upgrade.
+  when:
+    - snapcenter_upgrade_data_volume_id is not defined
+      or snapcenter_upgrade_data_volume_id | length == 0
+
+- name: Create pre-upgrade EBS snapshot of the data volume
+  amazon.aws.ec2_snapshot:
+    region: "{{ aws_region }}"
+    volume_id: "{{ snapcenter_upgrade_data_volume_id }}"
+    description: >-
+      Pre-upgrade snapshot of SnapCenter data volume on
+      {{ ec2_hostname }} ({{ ec2_instance_id }}),
+      {{ snapcenter_upgrade_current }} -> {{ snapcenter_upgrade_target }}
+    wait: "{{ snapcenter_upgrade_snapshot_wait }}"
+    wait_timeout: "{{ snapcenter_upgrade_snapshot_wait_timeout }}"
+    snapshot_tags:
+      Name: "{{ ec2_hostname }}-pre-upgrade-{{ snapcenter_upgrade_target }}"
+      Environment: "{{ ec2_environment }}"
+      Hostname: "{{ ec2_hostname }}"
+      InstanceId: "{{ ec2_instance_id }}"
+      Purpose: "snapcenter-pre-upgrade"
+      FromVersion: "{{ snapcenter_upgrade_current }}"
+      ToVersion: "{{ snapcenter_upgrade_target }}"
+  register: snapcenter_upgrade_snapshot_result
+  delegate_to: localhost
+  become: false
+
+- name: Show snapshot details
+  ansible.builtin.debug:
+    msg: >-
+      Created snapshot {{ snapcenter_upgrade_snapshot_result.snapshot_id }}
+      of volume {{ snapcenter_upgrade_data_volume_id }}

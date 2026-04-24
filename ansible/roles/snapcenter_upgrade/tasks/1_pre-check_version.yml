@@ -1,0 +1,54 @@
+---
+- name: Check installed SnapCenter version
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/version"
+    method: GET
+    validate_certs: false
+    status_code: 200
+  register: snapcenter_upgrade_current_version
+
+- name: Set current and target version facts
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_current: "{{ snapcenter_upgrade_current_version.json.ProductVersion }}"
+    snapcenter_upgrade_target: "{{ snapcenter_version }}"
+
+# SnapCenter uses MAJOR.MINOR[.PATCH][PN] versioning e.g. 6.0, 6.0.1, 6.0.1P1, 6.1, 6.1P1, 6.1P2, 6.2
+- name: Parse versions into comparable tuples
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_current_parts:
+      - "{{ (snapcenter_upgrade_current.split('P')[0]).split('.') | map('int') | list }}"
+      - "{{ (snapcenter_upgrade_current.split('P')[1] | default('0')) | int }}"
+    snapcenter_upgrade_target_parts:
+      - "{{ (snapcenter_upgrade_target.split('P')[0]).split('.') | map('int') | list }}"
+      - "{{ (snapcenter_upgrade_target.split('P')[1] | default('0')) | int }}"
+
+- name: Determine whether upgrade is required
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_required: "{{ snapcenter_upgrade_target_parts > snapcenter_upgrade_current_parts }}"
+
+- name: Define ANSI colour codes
+  ansible.builtin.set_fact:
+    ansi_yellow: "\e[1;33m"
+    ansi_reset: "\e[0m"
+
+- name: Build upgrade plan message
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_plan_msg: >-
+      {% if snapcenter_upgrade_required -%}
+      Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Upgrade will run.
+      {%- elif snapcenter_upgrade_target_parts < snapcenter_upgrade_current_parts -%}
+      {{ ansi_yellow }}Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - target version is older than installed version (downgrades are not supported){{ ansi_reset }}
+      {%- else -%}
+      {{ ansi_yellow }}Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - already on target version{{ ansi_reset }}
+      {%- endif %}
+
+- name: Show upgrade plan
+  ansible.builtin.debug:
+    msg: ""
+  with_items:
+    - "\n{{ snapcenter_upgrade_plan_msg }}"
+
+- name: End play for this host if no upgrade is needed
+  when: not snapcenter_upgrade_required
+  block:
+    - ansible.builtin.meta: end_host

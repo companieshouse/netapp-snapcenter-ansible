@@ -1,0 +1,17 @@
+---
+- name: Validate required EC2 composed variables are set
+  ansible.builtin.assert:
+    that:
+      - lookup('vars', item, default='') | trim | length > 0
+    fail_msg: >-
+      Required inventory variable '{{ item }}' is not set or empty.
+      Check that the corresponding EC2 tag exists and the
+      inventory compose block maps it correctly.
+  # Tags set in Terraform, surfaced using aws_ec2 plugin in /inventory/*
+  loop:
+    - ec2_zone
+    - ec2_hostname
+    - ec2_environment
+    - ec2_instance_id
+  loop_control:
+    label: "{{ item }}"

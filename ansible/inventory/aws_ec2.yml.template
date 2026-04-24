@@ -14,3 +14,10 @@ keyed_groups:
     separator: "_"
 
 hostnames: private-ip-address
+
+# Tags set in Terraform, below list should match in /roles/ec2_tags_check/tasks/main.yml
+compose:
+  ec2_zone: tags.Zone
+  ec2_hostname: tags.Hostname
+  ec2_environment: tags.Environment
+  ec2_instance_id: instance_id

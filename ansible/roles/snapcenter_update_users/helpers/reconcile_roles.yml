@@ -1,0 +1,56 @@
+---
+- name: "Compute role delta for user: {{ sc_drift_user }}"
+  ansible.builtin.set_fact:
+    sc_drift_roles_to_remove: >-
+      {{
+        snapcenter_update_users_current[sc_drift_user]
+        | difference(snapcenter_update_users_desired[sc_drift_user])
+        | list
+      }}
+    sc_drift_roles_to_add: >-
+      {{
+        snapcenter_update_users_desired[sc_drift_user]
+        | difference(snapcenter_update_users_current[sc_drift_user])
+        | list
+      }}
+
+- name: "Show role delta for user: {{ sc_drift_user }}"
+  ansible.builtin.debug:
+    msg:
+      - "User:      {{ sc_drift_user }}"
+      - "Current:   {{ snapcenter_update_users_current[sc_drift_user] }}"
+      - "Desired:   {{ snapcenter_update_users_desired[sc_drift_user] }}"
+      - "To remove: {{ sc_drift_roles_to_remove }}"
+      - "To add:    {{ sc_drift_roles_to_add }}"
+
+- name: "Unassign stale roles for user: {{ sc_drift_user }}"
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User/{{ sc_drift_user }}?RoleName={{ item | urlencode }}"
+    method: PUT
+    headers:
+      Token: "{{ snapcenter_update_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200]
+  loop: "{{ sc_drift_roles_to_remove }}"
+  loop_control:
+    label: "{{ sc_drift_user }} -= {{ item }}"
+  register: sc_drift_unassign_result
+  failed_when: >-
+    sc_drift_unassign_result.json.Result._errorCode | default(-1) != 0
+
+- name: "Assign new roles for user: {{ sc_drift_user }}"
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserName={{ sc_drift_user }}&RoleName={{ item | urlencode }}"
+    method: PUT
+    headers:
+      Token: "{{ snapcenter_update_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200]
+  loop: "{{ sc_drift_roles_to_add }}"
+  loop_control:
+    label: "{{ sc_drift_user }} += {{ item }}"
+  register: sc_drift_assign_result
+  failed_when: >-
+    sc_drift_assign_result.json.Result._errorCode | default(-1) != 0

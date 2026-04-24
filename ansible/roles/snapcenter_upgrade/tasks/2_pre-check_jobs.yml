@@ -1,0 +1,85 @@
+---
+- name: Authenticate with SnapCenter API as admin
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/auth/login"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      UserOperationContext:
+        User:
+          Name: admin
+          Passphrase: "{{ vault_admin_password }}"
+    validate_certs: false
+    return_content: true
+  register: snapcenter_upgrade_auth
+  no_log: true
+
+- name: Fail if admin authentication failed
+  ansible.builtin.fail:
+    msg: >-
+      Could not authenticate with SnapCenter API as `admin` before upgrade.
+      Error: {{ snapcenter_upgrade_auth.json.Result._message | default('No response') }}
+  when: >-
+    snapcenter_upgrade_auth.json.Result._errorCode | default(-1) != 0
+    or snapcenter_upgrade_auth.json.User.Token | default(none) is none
+
+- name: Set auth token
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_auth_token: "{{ snapcenter_upgrade_auth.json.User.Token }}"
+  no_log: true
+
+- name: Fetch SnapCenter jobs in each active state
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/jobs?Status={{ item }}"
+    method: GET
+    headers:
+      Token: "{{ snapcenter_upgrade_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200]
+  register: snapcenter_upgrade_jobs_results
+  loop:
+    - Running
+    - Queued
+    - Retry
+    - Validating
+
+- name: Flatten active jobs across all queried statuses
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_active_jobs: >-
+      {{
+        snapcenter_upgrade_jobs_results.results
+        | map(attribute='json.Jobs')
+        | map('default', [])
+        | sum(start=[])
+      }}
+
+- name: Show active jobs (if any)
+  ansible.builtin.debug:
+    msg: >-
+      Active job: id={{ item.Id }} name={{ item.Name | default('<no name>') }}
+      status={{ item.Status }}
+      ({{ item.PercentageComplete | default(0) }}% complete)
+  loop: "{{ snapcenter_upgrade_active_jobs }}"
+  loop_control:
+    label: "{{ item.Id }}"
+  when: snapcenter_upgrade_active_jobs | length > 0
+
+- name: Fail if any jobs are running or queued
+  ansible.builtin.fail:
+    msg: >-
+      Refusing to upgrade: {{ snapcenter_upgrade_active_jobs | length }} SnapCenter
+      job(s) are currently active (Running/Queued/Retry/Validating). Wait for them
+      to complete (or cancel them from the SnapCenter UI) and re-run the upgrade.
+      To override this check, set snapcenter_upgrade_skip_active_jobs_check=true
+      (not recommended).
+  when:
+    - snapcenter_upgrade_active_jobs | length > 0
+    - not (snapcenter_upgrade_skip_active_jobs_check | default(false))
+
+- name: No active jobs — safe to proceed
+  ansible.builtin.debug:
+    msg: "No running, queued, validating, or retrying SnapCenter jobs. Safe to upgrade."
+  when: snapcenter_upgrade_active_jobs | length == 0

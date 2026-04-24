@@ -1,0 +1,27 @@
+---
+- name: 1/9 Pre-check Inputs
+  ansible.builtin.include_tasks: 1_pre-check_inputs.yml
+
+- name: 2/9 Pre-check Linux Users
+  ansible.builtin.include_tasks: 2_pre-check_linux-users.yml
+
+- name: 3/9 SnapCenter API - Authenticate & Get Token
+  ansible.builtin.include_tasks: 3_sc_api_auth.yml
+
+- name: 4/9 SnapCenter API - Fetch Current Users
+  ansible.builtin.include_tasks: 4_sc_api_fetch.yml
+
+- name: 5/9 Compare Users in Vault against API Results
+  ansible.builtin.include_tasks: 5_diff_calc.yml
+
+- name: 6/9 Delete Users who were removed from Vault
+  ansible.builtin.include_tasks: 6_user_del.yml
+
+- name: 7/9 Create Users who've been added to Vault
+  ansible.builtin.include_tasks: 7_user_create.yml
+
+- name: 8/9 Change User Roles to reflect Vault
+  ansible.builtin.include_tasks: 8_user_roles.yml
+
+- name: 9/9 Validate all changes
+  ansible.builtin.include_tasks: 9_validate.yml

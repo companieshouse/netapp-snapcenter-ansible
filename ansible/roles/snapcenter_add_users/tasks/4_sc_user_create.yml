@@ -1,0 +1,20 @@
+---
+- name: SnapCenter API - Add admin user
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames=admin&RoleNames=SnapCenterAdmin"
+    method: POST
+    headers:
+      Token: "{{ snapcenter_add_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200, 201]
+  register: snapcenter_add_users_admin_result
+  when: snapcenter_add_users_authenticated_as == 'root'
+
+- name: SnapCenter API - Add other users
+  ansible.builtin.include_tasks: ../helpers/assign_roles.yml
+  loop: "{{ vault_snapcenter_users | default([]) }}"
+  loop_control:
+    loop_var: sc_user
+    label: "{{ sc_user.username }}"
+  when: vault_snapcenter_users is defined

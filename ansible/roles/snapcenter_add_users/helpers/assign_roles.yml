@@ -1,0 +1,17 @@
+---
+- name: "Assign roles to SnapCenter user: {{ sc_user.username }}"
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/{{ snapcenter_api_version }}/User?UserNames={{ sc_user.username }}&RoleNames={{ item | urlencode }}"
+    method: POST
+    headers:
+      Token: "{{ snapcenter_add_users_auth_token }}"
+      Content-Type: application/json
+    validate_certs: false
+    status_code: [200, 201]
+  loop: "{{ sc_user.snapcenter_roles }}"
+  loop_control:
+    label: "{{ sc_user.username }} += {{ item }}"
+  register: snapcenter_add_users_assign_result
+  failed_when: >-
+    snapcenter_add_users_assign_result.json.Result._errorCode | default(-1) != 0
+  no_log: true
