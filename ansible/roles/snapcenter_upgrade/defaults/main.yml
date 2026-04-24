@@ -12,7 +12,7 @@ snapcenter_upgrade_public_key_path: "/tmp/snapcenter_public_key.pub"
 snapcenter_upgrade_log_name: "InstallerLog.log"
 
 # EBS Snapshot
-snapcenter_upgrade_snapshot_enabled: true
+snapcenter_upgrade_snapshot_enabled: false
 snapcenter_upgrade_snapshot_wait: true
 snapcenter_upgrade_snapshot_wait_timeout: 900
 

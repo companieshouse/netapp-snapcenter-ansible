@@ -12,13 +12,33 @@
     snapcenter_upgrade_current: "{{ snapcenter_upgrade_current_version.json.ProductVersion }}"
     snapcenter_upgrade_target: "{{ snapcenter_version }}"
 
+# SnapCenter uses MAJOR.MINOR[.PATCH][PN] versioning e.g. 6.0, 6.0.1, 6.0.1P1, 6.1, 6.1P1, 6.1P2, 6.2
+- name: Parse versions into comparable tuples
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_current_parts:
+      - "{{ (snapcenter_upgrade_current.split('P')[0]).split('.') | map('int') | list }}"
+      - "{{ (snapcenter_upgrade_current.split('P')[1] | default('0')) | int }}"
+    snapcenter_upgrade_target_parts:
+      - "{{ (snapcenter_upgrade_target.split('P')[0]).split('.') | map('int') | list }}"
+      - "{{ (snapcenter_upgrade_target.split('P')[1] | default('0')) | int }}"
+
+- name: Fail if target version is older than installed version
+  ansible.builtin.fail:
+    msg: >-
+      Refusing to run: target version ({{ snapcenter_upgrade_target }}) is older
+      than the installed version ({{ snapcenter_upgrade_current }}). SnapCenter
+      does not support in-place downgrades. Check snapcenter_version in
+      group_vars/all/snapcenter.yml.
+  when: snapcenter_upgrade_target_parts < snapcenter_upgrade_current_parts
+
 - name: Determine whether upgrade is required
   ansible.builtin.set_fact:
-    snapcenter_upgrade_required: "{{ snapcenter_upgrade_current != snapcenter_upgrade_target }}"
+    snapcenter_upgrade_required: "{{ snapcenter_upgrade_target_parts > snapcenter_upgrade_current_parts }}"
 
 - name: Show upgrade plan
   ansible.builtin.debug:
     msg: >-
       Current: {{ snapcenter_upgrade_current }} |
       Target:  {{ snapcenter_upgrade_target }} |
-      {{ 'Upgrade will run.' if snapcenter_upgrade_required else 'Skipping - Installed version matches target version' }}
+      {{ 'Upgrade will run.' if snapcenter_upgrade_required
+         else 'Skipping - Installed version matches, or is newer than target' }}
