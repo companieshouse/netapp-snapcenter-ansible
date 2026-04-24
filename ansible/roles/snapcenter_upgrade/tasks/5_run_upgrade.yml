@@ -10,3 +10,4 @@
   register: snapcenter_upgrade_result
   changed_when: true
   failed_when: snapcenter_upgrade_result.rc != 0
+# -DSELINUX=1 is required from policies set in the ami - https://github.com/companieshouse/netapp-snapcenter-ami
