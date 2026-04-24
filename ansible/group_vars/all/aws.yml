@@ -1,2 +1,4 @@
 ---
 aws_region: "eu-west-2"
+s3_resources_bucket: "shared-services.eu-west-2.resources.ch.gov.uk"
+s3_resources_path: "netapp_snapcenter"

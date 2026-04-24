@@ -1,3 +1,21 @@
 ---
-snapcenter_upgrade_installer_path: /tmp/snapcenter_linux_server.bin
-snapcenter_upgrade_log_name: InstallerLog.log
+# S3 - To upgrade, don't change below; upload to S3, then bump version in group_vars/all/snapcenter.yml
+snapcenter_upgrade_s3_key_prefix: "{{ s3_resources_path }}/{{ snapcenter_version }}"
+snapcenter_upgrade_s3_key_binary: "{{ snapcenter_upgrade_s3_key_prefix }}/{{ snapcenter_binary }}"
+snapcenter_upgrade_s3_key_signature: "{{ snapcenter_upgrade_s3_key_prefix }}/{{ snapcenter_binary }}.sig"
+snapcenter_upgrade_s3_key_public_key: "{{ snapcenter_upgrade_s3_key_prefix }}/snapcenter_public_key.pub"
+
+# Paths
+snapcenter_upgrade_installer_path: "/tmp/{{ snapcenter_binary }}"
+snapcenter_upgrade_signature_path: "/tmp/{{ snapcenter_binary }}.sig"
+snapcenter_upgrade_public_key_path: "/tmp/snapcenter_public_key.pub"
+snapcenter_upgrade_log_name: "InstallerLog.log"
+
+# EBS Snapshot
+snapcenter_upgrade_snapshot_enabled: true
+snapcenter_upgrade_snapshot_wait: true
+snapcenter_upgrade_snapshot_wait_timeout: 900
+
+# Upgrade Time Allowance
+snapcenter_upgrade_api_wait_retries: 60
+snapcenter_upgrade_api_wait_delay: 15

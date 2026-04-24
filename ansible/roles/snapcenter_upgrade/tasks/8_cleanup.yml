@@ -1,0 +1,10 @@
+---
+- name: Remove installer, signature, and public key from /tmp
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ snapcenter_upgrade_installer_path }}"
+    - "{{ snapcenter_upgrade_signature_path }}"
+    - "{{ snapcenter_upgrade_public_key_path }}"
+# /var/opt/snapcenter/logs/InstallerLog.log remains for audit

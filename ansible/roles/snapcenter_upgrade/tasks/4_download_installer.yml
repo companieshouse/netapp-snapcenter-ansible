@@ -1,0 +1,48 @@
+---
+- name: Download SnapCenter installer from S3
+  amazon.aws.s3_object:
+    bucket: "{{ s3_resources_bucket }}"
+    object: "{{ snapcenter_upgrade_s3_key_binary }}"
+    dest: "{{ snapcenter_upgrade_installer_path }}"
+    mode: get
+    region: "{{ aws_region }}"
+
+- name: Download NetApp signature file from S3
+  amazon.aws.s3_object:
+    bucket: "{{ s3_resources_bucket }}"
+    object: "{{ snapcenter_upgrade_s3_key_signature }}"
+    dest: "{{ snapcenter_upgrade_signature_path }}"
+    mode: get
+    region: "{{ aws_region }}"
+
+- name: Download NetApp public key from S3
+  amazon.aws.s3_object:
+    bucket: "{{ s3_resources_bucket }}"
+    object: "{{ snapcenter_upgrade_s3_key_public_key }}"
+    dest: "{{ snapcenter_upgrade_public_key_path }}"
+    mode: get
+    region: "{{ aws_region }}"
+
+- name: Verify installer signature using NetApp public key
+  ansible.builtin.command:
+    cmd: >-
+      openssl dgst -sha256
+      -verify {{ snapcenter_upgrade_public_key_path }}
+      -signature {{ snapcenter_upgrade_signature_path }}
+      {{ snapcenter_upgrade_installer_path }}
+  register: snapcenter_upgrade_sig_verify
+  changed_when: false
+  failed_when: >-
+    snapcenter_upgrade_sig_verify.rc != 0
+    or 'Verified OK' not in snapcenter_upgrade_sig_verify.stdout
+
+- name: Show signature verification result
+  ansible.builtin.debug:
+    msg: "Installer signature verified against NetApp public key."
+
+- name: Make installer executable
+  ansible.builtin.file:
+    path: "{{ snapcenter_upgrade_installer_path }}"
+    mode: "0755"
+    owner: root
+    group: root

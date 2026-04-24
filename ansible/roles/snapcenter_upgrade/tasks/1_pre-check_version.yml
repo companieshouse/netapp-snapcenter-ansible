@@ -1,0 +1,24 @@
+---
+- name: Check installed SnapCenter version
+  ansible.builtin.uri:
+    url: "https://localhost:{{ snapcenter_webapp_port }}/api/version"
+    method: GET
+    validate_certs: false
+    status_code: 200
+  register: snapcenter_upgrade_current_version
+
+- name: Set current and target version facts
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_current: "{{ snapcenter_upgrade_current_version.json.ProductVersion }}"
+    snapcenter_upgrade_target: "{{ snapcenter_version }}"
+
+- name: Determine whether upgrade is required
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_required: "{{ snapcenter_upgrade_current != snapcenter_upgrade_target }}"
+
+- name: Show upgrade plan
+  ansible.builtin.debug:
+    msg: >-
+      Current: {{ snapcenter_upgrade_current }} |
+      Target:  {{ snapcenter_upgrade_target }} |
+      {{ 'Upgrade will run.' if snapcenter_upgrade_required else 'Skipping - Installed version matches target version' }}
