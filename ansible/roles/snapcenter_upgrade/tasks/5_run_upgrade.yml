@@ -5,6 +5,7 @@
       {{ snapcenter_upgrade_installer_path }}
       -i silent
       -DUPGRADE=1
+      -DSELINUX=1
       -DINSTALL_LOG_NAME={{ snapcenter_upgrade_log_name }}
   register: snapcenter_upgrade_result
   changed_when: true
