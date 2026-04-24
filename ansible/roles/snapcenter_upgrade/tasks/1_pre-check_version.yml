@@ -22,27 +22,28 @@
       - "{{ (snapcenter_upgrade_target.split('P')[0]).split('.') | map('int') | list }}"
       - "{{ (snapcenter_upgrade_target.split('P')[1] | default('0')) | int }}"
 
-- name: Skip run if target version is older than installed version
-  when: snapcenter_upgrade_target_parts < snapcenter_upgrade_current_parts
-  block:
-    - name: Show downgrade skip reason
-      ansible.builtin.debug:
-        msg: |
-          Skipping: target version ({{ snapcenter_upgrade_target }}) is older than the installed version ({{ snapcenter_upgrade_current }}).
-          SnapCenter does not support in-place downgrades.
-          Check snapcenter_version in group_vars/all/snapcenter.yml if this is unexpected.
-
-    - name: End play for this host
-      ansible.builtin.meta: end_host
-
 - name: Determine whether upgrade is required
   ansible.builtin.set_fact:
     snapcenter_upgrade_required: "{{ snapcenter_upgrade_target_parts > snapcenter_upgrade_current_parts }}"
 
+- name: Build upgrade plan message
+  ansible.builtin.set_fact:
+    snapcenter_upgrade_plan_msg: >-
+      {% if snapcenter_upgrade_required -%}
+      Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Upgrade will run.
+      {%- elif snapcenter_upgrade_target_parts < snapcenter_upgrade_current_parts -%}
+      \033[1;33mCurrent: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - target version is older than installed version (downgrades are not supported)\033[0m
+      {%- else -%}
+      \033[1;33mCurrent: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - already on target version\033[0m
+      {%- endif %}
+
 - name: Show upgrade plan
   ansible.builtin.debug:
-    msg: >-
-      Current: {{ snapcenter_upgrade_current }} |
-      Target:  {{ snapcenter_upgrade_target }} |
-      {{ 'Upgrade will run.' if snapcenter_upgrade_required
-         else 'Skipping - Installed version matches, or is newer than target' }}
+    msg: ""
+  with_items:
+    - "\n{{ snapcenter_upgrade_plan_msg }}"
+
+- name: End play for this host if no upgrade is needed
+  when: not snapcenter_upgrade_required
+  block:
+    - ansible.builtin.meta: end_host
