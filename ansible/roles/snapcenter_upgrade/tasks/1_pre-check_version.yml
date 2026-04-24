@@ -26,15 +26,20 @@
   ansible.builtin.set_fact:
     snapcenter_upgrade_required: "{{ snapcenter_upgrade_target_parts > snapcenter_upgrade_current_parts }}"
 
+- name: Define ANSI colour codes
+  ansible.builtin.set_fact:
+    ansi_yellow: "\e[1;33m"
+    ansi_reset: "\e[0m"
+
 - name: Build upgrade plan message
   ansible.builtin.set_fact:
     snapcenter_upgrade_plan_msg: >-
       {% if snapcenter_upgrade_required -%}
       Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Upgrade will run.
       {%- elif snapcenter_upgrade_target_parts < snapcenter_upgrade_current_parts -%}
-      \033[1;33mCurrent: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - target version is older than installed version (downgrades are not supported)\033[0m
+      {{ ansi_yellow }}Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - target version is older than installed version (downgrades are not supported){{ ansi_reset }}
       {%- else -%}
-      \033[1;33mCurrent: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - already on target version\033[0m
+      {{ ansi_yellow }}Current: {{ snapcenter_upgrade_current }} | Target: {{ snapcenter_upgrade_target }} | Skipping - already on target version{{ ansi_reset }}
       {%- endif %}
 
 - name: Show upgrade plan
