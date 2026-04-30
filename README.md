@@ -1,6 +1,6 @@
 # NetApp SnapCenter Ansible
 
-Ansible to apply environment-specific settings on servers using [netapp-snapcenter-ami](https://github.com/companieshouse/netapp-snapcenter-ami) and [netapp-snapcenter-terraform](https://github.com/companieshouse/netapp-snapcenter-terraform)
+Ansible to apply environment-specific settings on servers using [netapp-snapcenter-ami](https://github.com/companieshouse/netapp-snapcenter-ami) and [netapp-terraform/snapcenter](https://github.com/companieshouse/netapp-terraform/tree/main/groups/snapcenter)
 - Pulls required information from Hashicorp Vault (see requirements below)
 - Sets hostname using tag from AWS
 - Mounts the data volume (which is a snapshot from the ami build)
