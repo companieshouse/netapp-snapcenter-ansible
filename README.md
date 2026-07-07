@@ -1,49 +1,48 @@
 # NetApp SnapCenter Ansible
 
 Ansible to apply environment-specific settings on servers using [netapp-snapcenter-ami](https://github.com/companieshouse/netapp-snapcenter-ami) and [netapp-terraform/snapcenter](https://github.com/companieshouse/netapp-terraform/tree/main/groups/snapcenter)
-- Pulls required information from Hashicorp Vault (see requirements below)
-- Sets hostname using tag from AWS
-- Mounts the data volume (which is a snapshot from the ami build)
-- Reboots the instance
-- Creates a linux `admin` user with admin_password from Vault
-- Adds other required users as specified in Vault (snapcenter_users)
-- Authenticates with SnapCenter's Rest API using root_password_temp
-- Registers admin and other users with SnapCenter via the API
-- Verifies the environment-specific admin account works and has full permissions
-- Secures root with a random password; `admin` can be used going forward
 
 
-## Playbooks
-
+## Required Playbook
 `0-provision.yml` should be run against a newly created instance running [netapp-snapcenter-ami](https://github.com/companieshouse/netapp-snapcenter-ami)
+- Tags the instance and sets its hostname from AWS
+- Mounts the SnapCenter data volume (the snapshot baked into the AMI) and reboots if needed
+- Creates the Linux `admin` user and any other users listed in Vault
+- Registers those users with SnapCenter over its REST API
+- Checks the new `admin` account actually works and has full permissions
+- Locks down the root account with a random password (so `admin` is used from here on)
+
+## Optional Playbooks
 
 `1-update-users.yml` can be run against an already provisioned instance to update SnapCenter users to mirror vault
 
 `2-upgrade-version.yml` can be run against an already provisioned instance to upgrade (in place) the version of SnapCenter e.g. 6.1P2 -> 6.2
+[How To: Update SnapCenter Version](https://github.com/companieshouse/netapp-snapcenter-ansible#how-to-update-snapcenter-version)
 
 
 ## Vault requirements
 
 `0-provision.yml` requires the following keys in Hashicorp Vault:
-
 ```
 /applications/{aws_account}-{aws_region}/netapp/snapcenter-linux/
 └── accounts-admin-root     # Contains: root_password_temp, admin_password
 ```
 Optionally:
+```
+/applications/{aws_account}-{aws_region}/netapp/snapcenter-linux/
 └── accounts-users          # Contains: snapcenter_users (array)
+```
+
 
 
 `1-update-users.yml playbook` requires the following keys in Hashicorp Vault:
-
 ```
 /applications/{aws_account}-{aws_region}/netapp/snapcenter-linux/
 ├── accounts-admin-root     # Contains: root_password_temp, admin_password
 └── accounts-users          # Contains: snapcenter_users (array)
 ```
 
-Example secrets:
-
+Example:
 **accounts-admin-root/**
 ```json
 {
@@ -88,6 +87,7 @@ Example secrets:
   ]
 }
 ```
+
 
 ## SnapCenter Roles
 
